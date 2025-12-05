@@ -1,0 +1,43 @@
+{
+  "series": [
+    {
+      "type": "series",
+      "title": "Batman The Series",
+      "shortText": "nanananana batman.",
+      "seasons": [
+        {
+          "type": "season",
+          "title": "Hjelp! Batman",
+          "episodes": [
+            "episode_pilot"
+          ]
+        },
+        {
+          "type": "season",
+          "title": "Hjelp! Bat2",
+          "episodes": [
+            "episode_new-beginning",
+            "episode_the-dark-knight-rises"
+          ]
+        },
+        {
+          "type": "season",
+          "title": "Wat will be",
+          "episodes": [
+            "episode_whatever",
+            "episode_whatever-batman-does"
+          ]
+        },
+        {
+          "type": "season",
+          "title": "Hjelp! Wat!",
+          "episodes": [
+            "episode_wat",
+            "episode_what-the-hell"
+          ]
+        }
+      ]
+    }
+  ],
+  "producer": "DC Comics"
+}

@@ -1,0 +1,37 @@
+<script src="/dd.js"></script>
+<script type="module" src="/ddx.js?fetch&oi.~&el.~" _:define></script>
+<script type="module" src="./v1.js?embrace" _:define></script>
+<script embrace="embrace1">
+  (window.Embrace ??= {})["embrace1"] = {
+    embrace1_3: (args, v) => args("$"),
+    embrace1_3_2: (args, v) => `company #${(v = args("#company")) === false || v === undefined ? "" : v}`,
+    embrace1_3_5: (args, v) => `company id is ${(v = args("$company")) === false || v === undefined ? "" : v}`,
+    embrace1_3_8: (args, v) => `company is called ${(v = args("company.name")) === false || v === undefined ? "" : v} `,
+    embrace1_3_11: (args, v) => ` and has 
+      ${(v = args("$")[args("$company")].employees.length) === false || v === undefined ? "" : v} / ${(v = args("company.employees.length")) === false || v === undefined ? "" : v} 
+      employees`,
+    embrace1_6: (args, v) => args("company1.name") === 'Acme',
+    embrace1_6_2: (args, v) => `Acme has ${(v = args("company1.employees.length")) === false || v === undefined ? "" : v} employees`,
+    embrace1_9: (args, v) => args("$.nothing"),
+    embrace1_9_2: (args, v) => `${(v = args("should.not.happen")) === false || v === undefined ? "" : v}`
+  };
+</script>
+<div id="embrace1" _::fetch:embrace="/x/pp/companies.json"><template>
+    <ul>
+      <template for="company of $">
+        <li>company #{{#company}}</li>
+        <li>company id is {{$company}}</li>
+        <li>company is called {{company.name}} </li>
+        <li> and has
+          {{$[$company].employees.length}} / {{company.employees.length}}
+          employees</li>
+      </template>
+    </ul>
+    <template if="company1.name === 'Acme'">
+      <div>Acme has {{company1.employees.length}} employees</div>
+    </template>
+
+    <template for="x of $.nothing">
+      <div>{{should.not.happen}}</div>
+    </template>
+  </template></div>

@@ -1,0 +1,78 @@
+<div template:="" i::fetch:embrace="SerSeaEpi.json">
+  <h2>List of Series ("series" is an array? true)</h2>
+  <ol>
+    <li>
+      <h3>Batman The Series is the no. 0 in your play list.</h3>
+      <ul>
+        <li>
+          <h4>Hjelp! Batman is the no. 0 in series Batman The Series.</h4>
+          <ol> <!-- { "type": "season", "title": "Hjelp! Batman", "episodes": [ "episode_pilot" ] } -->
+            <li>episode #0: episode_pilot produced by DC Comics.</li> <template for="episode of season.episodes">
+              <!-- {{JSON.stringify(season, null, 2)}} -->
+              <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+            </template>
+          </ol> <template if="(#season % 2) === 0">
+            <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+              </template></ol>
+          </template>
+        </li>
+        <li>
+          <h4>Hjelp! Bat2 is the no. 1 in series Batman The Series.</h4> <template if="(#season % 2) === 0">
+            <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+              </template></ol>
+          </template>
+        </li>
+        <li>
+          <h4>Wat will be is the no. 2 in series Batman The Series.</h4>
+          <ol>
+            <!-- { "type": "season", "title": "Wat will be", "episodes": [ "episode_whatever", "episode_whatever-batman-does" ] } -->
+            <li>episode #0: episode_whatever produced by DC Comics.</li>
+            <!-- { "type": "season", "title": "Wat will be", "episodes": [ "episode_whatever", "episode_whatever-batman-does" ] } -->
+            <li>episode #1: episode_whatever-batman-does produced by DC Comics.</li> <template
+              for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+              <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+            </template>
+          </ol> <template if="(#season % 2) === 0">
+            <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+              </template></ol>
+          </template>
+        </li>
+        <li>
+          <h4>Hjelp! Wat! is the no. 3 in series Batman The Series.</h4> <template if="(#season % 2) === 0">
+            <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+              </template></ol>
+          </template>
+        </li> <template for="season of serie.seasons">
+          <li>
+            <h4>{{season.title}} is the no. {{#season}} in series {{serie.title}}.</h4> <template
+              if="(#season % 2) === 0">
+              <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                  <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+                </template></ol>
+            </template>
+          </li>
+        </template>
+      </ul>
+    </li> <template for="serie of series">
+      <li>
+        <h3>{{serie.title}} is the no. {{#serie}} in your play list.</h3>
+        <ul> <template for="season of serie.seasons">
+            <li>
+              <h4>{{season.title}} is the no. {{#season}} in series {{serie.title}}.</h4> <template
+                if="(#season % 2) === 0">
+                <ol> <template for="episode of season.episodes"> <!-- {{JSON.stringify(season, null, 2)}} -->
+                    <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+                  </template></ol>
+              </template>
+            </li>
+          </template></ul>
+      </li>
+    </template>
+  </ol> <template>
+
+  </template>
+</div>

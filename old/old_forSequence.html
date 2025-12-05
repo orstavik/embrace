@@ -1,0 +1,33 @@
+<script src="/dd.js"></script>
+<script type="module" src="/ddx.js?fetch&erGet&oi.~&embrace" _:define></script>
+<script type="module">
+  import { ErAnalysis } from "/ddx.js?fetch&erGet&oi.~&embrace";
+  document.Reactions.define("er", i => new ErAnalysis(i));
+  document.Reactions.define("get-page", er => {
+    return er;//({ ...er.resolve("page/directory") })
+  });
+</script>
+
+<body template: _::fetch:er:get-page:wait_3000:embrace="/x/er/companiesBig.json">
+
+  <!-- 
+  
+  The template below is completely outdated and needs to be modified to fit the incoming data.
+
+   -->
+  <h2>Branch List</h2>
+  <branch-list>
+    <div>
+      <!-- <template for="list of lists" > -->
+      <h2>{{list.title}}</h2>
+      <h3>{{list.subtitle}}</h3>
+      <ul>
+        <!-- <template for="item of list.items" > -->
+        <a href="/">
+          <li>{{item.name}}</li>
+        </a>
+      </ul>
+    </div>
+    </featured-list>
+
+</body>

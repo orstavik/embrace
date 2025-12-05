@@ -1,0 +1,17 @@
+<script src="/dd_dev.js"></script>
+<script type="module" src="/ddx.js?fetch&oi.~&el.~" _:define></script>
+<script type="module" src="./v1.js?embrace" _:define></script>
+
+<div id="embrace0" template: _::fetch:oi.company1:embrace="/x/pp/companies.json">
+  <h1>{{name}}</h1>
+  <ol>
+    <h3>List of {{employees.length}} employees</h3>
+    <!-- <template for="employee of employees"> -->
+    -x-x-
+    <li num="{{#employee}}">{{employee.fullname}} is employee number {{#employee}} for company {{name}}</li>
+    <!-- </template> -->
+    -x-x-
+    <h4>no more Employees</h4>
+  </ol>
+</div>
+<!-- comments with braces, stops the brace for that level until the end comment. -->

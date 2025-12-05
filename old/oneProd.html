@@ -1,0 +1,26 @@
+<script src="/dd.js"></script>
+<script type="module" src="/ddx.js?fetch&oi.~&el.~" _:define></script>
+<script type="module" src="./v1.js?embrace" _:define></script>
+<script embrace="embrace0">
+  (window.Embrace ??= {})["embrace0"] = {
+    embrace0_2: (args, v) => `${(v = args("name")) === false || v === undefined ? "" : v}`,
+    embrace0_7: (args, v) => `List of ${(v = args("employees.length")) === false || v === undefined ? "" : v} employees`,
+    embrace0_9: (args, v) => args("employees"),
+    embrace0_9_2: (args, v) => `${(v = args("#employee")) === false || v === undefined ? "" : v}`,
+    embrace0_9_3: (args, v) => `${(v = args("employee.fullname")) === false || v === undefined ? "" : v} is employee number ${(v = args("#employee")) === false || v === undefined ? "" : v} for company ${(v = args("name")) === false || v === undefined ? "" : v}`
+  };
+</script>
+<div id="embrace0" _::fetch:oi.company1:embrace="/x/pp/companies.json">
+  <template>
+    <h1>{{name}}</h1>
+    <ol>
+      <h3>List of {{employees.length}} employees</h3>
+      <template for="employee of employees">
+        -x-x-
+        <li num="{{#employee}}">{{employee.fullname}} is employee number {{#employee}} for company {{name}}</li>
+      </template>
+      -x-x-
+      <h4>no more Employees</h4>
+    </ol>
+  </template>
+</div>

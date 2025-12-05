@@ -1,0 +1,52 @@
+<script src="/dd_dev.js"></script>
+<script type="module" src="/ddx.js"
+  _:define="state&nav&er"
+  _:define-reaction="fetch&embrace"
+  _:define-trigger="change&click&popstate&hashchange"
+  _:define-reaction-rule="oi.&el.&e."></script>
+<script>
+  document.Reactions.define("resolve", state => {
+    let { er, nav } = state;
+    if (er == null || nav == null)
+      return EventLoop.Break;
+    nav = nav.slice(2) || "company/acme";
+    return er.resolve(nav);
+  });
+</script>
+
+<!-- todo the Er/er portal is no more. We now have the Er as a class, that should be a :reaction, not portal. -->
+
+<!-- _::wait_3000:test-change -->
+<body _::fetch:er="/x/er/companiesBig.json" er:state_er nav:oi.hash:state_nav>
+  <main template: state_nav_er:oi.state:resolve:embrace>
+    
+    <!-- {{JSON.stringify($, 0, 2)}} -->
+    <div click:e.target.value:nav>
+      <button value="#/department/marketing">department marketing</button>
+      <button value="#/company/acme">company Acme</button>
+    </div>
+
+    <!-- <template if="type === 'department'"> -->
+    <div>
+      <h3>{{name}}</h3>
+      <h4>Employees:</h4>
+      <!-- <template for="employee of employees"> -->
+      <p>{{employee.name}}</p>
+      <!-- </template> -->
+    </div>
+    <!-- </template> -->
+
+    <!-- <template if="type === 'company'"> -->
+    <div>
+      <h2>This is {{name}}'s Departments:</h2>
+      <selector>
+        <select name="departments" change:e.target.value:log:nav>
+          <!-- <template for="dep of departments"> -->
+          <option value="#/{{dep.type}}/{{dep.slug}}">{{dep.name}}</option>
+          <!-- </template> -->
+        </select>
+      </selector>
+    </div>
+    <!-- </template> -->
+  </main>
+</body>

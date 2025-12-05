@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+  <e2e-html name="ifAndFor" page="if_and_for.html" expected="if_and_for_expected_body.html" auto>
+    <script type="module" test>
+      export default async function () {
+        return document.body.innerHTML.replaceAll(/\s+/g, " ");
+      }
+    </script>
+  </e2e-html>
+
+  <e2e-html name="ifAndForProd" page="if_and_forProd.html" expected="if_and_forProd_expected_body.html" auto>
+    <script type="module" test>
+      export default async function () {
+        return document.body.innerHTML.replaceAll(/\s+/g, " ");
+      }
+    </script>
+  </e2e-html>
+
+  <script type="module" src="https://cdn.jsdelivr.net/gh/orstavik/TestHTML@25.07.21/e2e.js"></script>
+</body>
+
+</html>

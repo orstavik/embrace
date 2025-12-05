@@ -1,0 +1,33 @@
+<script src="/dd.js"></script>
+<script type="module" src="/ddx.js?el&fetch" i:define></script>
+<script type="module" src="v25x.js?embrace" i:define></script>
+<script embrace="embrace_">
+  window.Embrace = {
+    embrace: { embrace_6: function embrace_6(args, v) { return args("series"); }, embrace_6_4: function embrace_6_4(args, v) { return `${(v = args("serie.title")) === false || v === undefined ? "" : v} is the no. ${(v = args("#serie")) === false || v === undefined ? "" : v} in your play list.`; }, embrace_6_8: function embrace_6_8(args, v) { return args("serie.seasons"); }, embrace_6_8_4: function embrace_6_8_4(args, v) { return `${(v = args("season.title")) === false || v === undefined ? "" : v} is the no. ${(v = args("#season")) === false || v === undefined ? "" : v} in series ${(v = args("serie.title")) === false || v === undefined ? "" : v}.`; }, embrace_6_8_6: function embrace_6_8_6(args, v) { return (args("#season") % 2) === 0; }, embrace_6_8_6_3: function embrace_6_8_6_3(args, v) { return args("season.episodes"); }, embrace_6_8_6_3_2: function embrace_6_8_6_3_2(args, v) { return `episode #${(v = args("#episode")) === false || v === undefined ? "" : v}: ${(v = args("episode")) === false || v === undefined ? "" : v} produced by ${(v = args("producer")) === false || v === undefined ? "" : v}.`; } }
+  };
+</script>
+
+<div i::fetch:embrace="SerSeaEpi.json"><template>
+    <h2>List of Series</h2>
+    <ol>
+      <template for="serie of series">
+        <li>
+          <h3>{{serie.title}} is the no. {{#serie}} in your play list.</h3>
+          <ul>
+            <template for="season of serie.seasons">
+              <li>
+                <h4>{{season.title}} is the no. {{#season}} in series {{serie.title}}.</h4>
+                <template if="(#season % 2) === 0">
+                  <ol>
+                    <template for="episode of season.episodes">
+                      <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
+                    </template>
+                  </ol>
+                </template>
+              </li>
+            </template>
+          </ul>
+        </li>
+      </template>
+    </ol>
+  </template></div>

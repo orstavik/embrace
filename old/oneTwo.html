@@ -1,0 +1,24 @@
+<script src="/dd_dev.js"></script>
+<script type="module" src="/ddx.js?fetch&oi.~&el.~" _:define></script>
+<script type="module" src="./v1.js?embrace" _:define></script>
+
+<div id="embrace1" template: _::fetch:embrace="/x/pp/companies.json">
+  <ul>
+    <!-- <template for="company of $" > -->
+    <li>company #{{#company}}</li>
+    <li>company id is {{$company}}</li>
+    <li>company is called {{company.name}} </li>
+    <li> and has
+      {{$[$company].employees.length}} / {{company.employees.length}}
+      employees</li>
+  </ul>
+  <!-- <template if="company1.name === 'Acme'"> -->
+  <div>Acme has {{company1.employees.length}} employees</div>
+  <!-- </template> -->
+
+  <!-- <template for="x of $.nothing" > -->
+  <div>{{should.not.happen}}</div>
+  <!-- </template> -->
+  <!-- <template if="1"> -->
+  <div>Acme, one more time: {{company1.name}}</div>
+</div>
