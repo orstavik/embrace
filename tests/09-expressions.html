@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>09 - Expressions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .calc {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .highlight {
+            color: #4ade80;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <div class="calc">
+                <p>Price: ${{price}}</p>
+                <p>Quantity: {{quantity}}</p>
+                <hr>
+                <p>Total: <span class="highlight">${{price * quantity}}</span></p>
+                <p>Tax (10%): ${{price * quantity * 0.1}}</p>
+                <p>Grand Total: <span class="highlight">${{price * quantity * 1.1}}</span></p>
+            </div>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v25x.js";
+        async function run() {
+            const data = await (await fetch("./data/09-expressions.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+{
+  "simple": "Hello World",
+  "number": 42,
+  "booleanTrue": true,
+  "booleanFalse": false,
+  "obj": {
+    "prop": "nested property",
+    "deep": {
+      "val": "deep value"
+    }
+  },
+  "list": ["one", "two", "three"],
+  "objectsList": [
+    { "name": "Alice", "id": 1 },
+    { "name": "Bob", "id": 2 }
+  ],
+  "nullVal": null,
+  "undefinedVal": "undefined string",
+  "math": {
+    "a": 10,
+    "b": 5
+  },
+  "htmlString": "<b>Bold</b>"
+}

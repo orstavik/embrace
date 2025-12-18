@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>11 - Conditionals</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .box {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .logged-in {
+            background: #064e3b;
+            border: 2px solid #059669;
+        }
+
+        .logged-out {
+            background: #450a0a;
+            border: 2px solid #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <template if="isLoggedIn">
+                <div class="box logged-in">
+                    <h1>Welcome back, {{user.name}}!</h1>
+                </div>
+            </template>
+
+            <template if="!isLoggedIn">
+                <div class="box logged-out">
+                    <h1>Please log in to continue.</h1>
+                </div>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v25x.js";
+        async function run() {
+            const data = await (await fetch("./data/11-conditionals.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

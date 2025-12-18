@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>15 - Null Values</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <p>User: {{user.name}}</p>
+            <template if="user.address">
+                <p>Address: {{user.address}}</p>
+            </template>
+            <template if="!user.address">
+                <p><em>No address provided.</em></p>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v25x.js";
+        async function run() {
+            const data = await (await fetch("./data/15-null-values.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

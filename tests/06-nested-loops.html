@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>06 - Nested Loops</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .group {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #818cf8;
+        }
+
+        .member {
+            background: #4280d8;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <h1>Groups</h1>
+            <template for="group of groups">
+                <div class="group">
+                    <h3>{{group.name}}</h3>
+                    <template for="member of group.members">
+                        <span class="member">{{member}}</span>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v25x.js";
+        async function run() {
+            const data = await (await fetch("./data/06-nested-loops.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

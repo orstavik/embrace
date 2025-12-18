@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>14 - Empty Array</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .empty-msg {
+            color: #94a3b8;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <ul>
+                <template for="item of items">
+                    <li>{{item}}</li>
+                </template>
+            </ul>
+            <template if="items.length === 0">
+                <p class="empty-msg">No items found in the list.</p>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v25x.js";
+        async function run() {
+            const data = await (await fetch("./data/14-empty-array.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

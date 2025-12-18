@@ -1,0 +1,40 @@
+{
+    "title": "Employee Directory",
+    "employees": [
+        {
+            "id": 1,
+            "name": "Alice Johnson",
+            "email": "alice@example.com",
+            "role": "Developer",
+            "status": "Active"
+        },
+        {
+            "id": 2,
+            "name": "Bob Smith",
+            "email": "bob@example.com",
+            "role": "Designer",
+            "status": "Away"
+        },
+        {
+            "id": 3,
+            "name": "Charlie Brown",
+            "email": "charlie@example.com",
+            "role": "Manager",
+            "status": "Offline"
+        },
+        {
+            "id": 4,
+            "name": "Diana Prince",
+            "email": "diana@example.com",
+            "role": "Developer",
+            "status": "Active"
+        },
+        {
+            "id": 5,
+            "name": "Ethan Hunt",
+            "email": "ethan@example.com",
+            "role": "Security",
+            "status": "Active"
+        }
+    ]
+}
