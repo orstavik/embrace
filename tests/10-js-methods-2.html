@@ -53,7 +53,7 @@
                 <h3>User Profile</h3>
                 <p>Name: <span class="highlight">{{user.name}}</span></p>
                 <p>Status: <span class="badge {{getStatusClass(user.status)}}">{{formatLabel(user.status)}}</span></p>
-                <p>Role: {{user.role.toUpperCase()}}</p>
+                <p>Role: {{toUpperCase(user.role)}}</p>
                 <p>Last Seen: {{formatDate(user.lastLogin)}}</p>
             </div>
 
@@ -66,7 +66,8 @@
                     </template>
                 </ul>
                 <hr style="border: 0; border-top: 1px solid #334155;">
-                <p>Total Items: {{cart.reduce((sum, i) => sum + i.qty, 0)}}</p>
+                <!-- <p>Total Items: {{cart.reduce((sum, i) => sum + i.qty, 0)}}</p> -->
+                <p>Total Items: {{calculateTotalItems(cart)}}</p>
                 <p>Grand Total: <span class="highlight">${{calculateGrandTotal(cart).toFixed(2)}}</span></p>
             </div>
         </template>
@@ -81,7 +82,9 @@
             getStatusClass: (status) => status === 'active' ? 'badge-active' : 'badge-inactive',
             formatDate: (dateStr) => new Date(dateStr).toLocaleDateString(),
             calculateLineTotal: (item) => (item.price * item.qty).toFixed(2),
-            calculateGrandTotal: (items) => items.reduce((sum, i) => sum + (i.price * i.qty), 0)
+            calculateGrandTotal: (items) => items.reduce((sum, i) => sum + (i.price * i.qty), 0),
+            toUpperCase: (text) => text.toUpperCase(),
+            calculateTotalItems: (items) => items.reduce((sum, i) => sum + i.qty, 0)
         };
 
         async function run() {
