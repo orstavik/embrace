@@ -1,0 +1,14 @@
+{
+    "site": {
+        "title": "Embrace Router",
+        "description": "Lightweight client-side routing demo."
+    },
+    "user": {
+        "name": "Lojith",
+        "role": "Developer"
+    },
+    "stats": {
+        "pages": 2,
+        "mode": "Hash Routing"
+    }
+}
