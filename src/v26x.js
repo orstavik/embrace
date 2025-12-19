@@ -1,5 +1,5 @@
-import { LoopCube } from "./LoopCube.js";
-import { extractArgs, interpretTemplateString } from "./Tokenizer.js";
+import { LoopCube } from "./LoopCube26.js";
+import { extractArgs, interpretTemplateString } from "./Tokenizer26.js";
 
 const DoubleDots = {};
 /**
