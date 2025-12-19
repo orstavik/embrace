@@ -1,4 +1,4 @@
-import { embrace } from "../../src/v25x.js";
+import { embrace } from "../../src/v26x.js";
 
 /**
  * A reusable Custom Element that wraps the Embrace template engine.

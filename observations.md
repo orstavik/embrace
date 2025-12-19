@@ -8,5 +8,6 @@ The following are findings and limitations observed during the development and t
 - **Comments Handling**: Comments within the templates are not getting ignored; they are being compiled, which can lead to errors.
 - **Compilation Robustness**: If an error occurs during compilation, the process crashes, resulting in only a partially compiled output instead of a graceful failure or recovery.
 - **JS Methods in Templates**: JavaScript methods like `toUpperCase()` and `toLowerCase()` are not working when used within template expressions (e.g., `{{user.role.toUpperCase()}}` or `{{emp.status.toLowerCase()}}`).
+- **HTML Content Rendering**: Direct HTML content within a variable (e.g., `{{content}}` where `content` is `<strong>...</strong>`) is rendered as a literal string (escaped) rather than being parsed as HTML.
 - **Template Tag Requirement for `for` and `if`**: The engine does not support `for` or `if` attributes on regular HTML elements (e.g., `<div for="member of group.members">` or `<div if="age >= 18 && verified">`). These directives must be placed on `<template>` tags to function correctly.
 
