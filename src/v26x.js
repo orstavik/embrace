@@ -12,12 +12,7 @@ const DoubleDots = {};
 * @returns Function 
 */
 DoubleDots.importBasedEval = async function importBasedEval(codeString) {
-  codeString = "export default " + codeString.trim();
-  const blob = new Blob([codeString], { type: 'application/javascript' });
-  const url = URL.createObjectURL(blob);
-  const module = await import(url);
-  URL.revokeObjectURL(url);
-  return module.default;
+  return (new Function("return (" + codeString.trim() + ")"))();
 }
 
 //Template engine
@@ -29,7 +24,17 @@ function dotScope(data, superior, cache = {}) {
         superior?.(path) ??
         path.split('.').reduce((o, p) => o?.[p], data);
   };
-  return me;
+  return new Proxy(me, {
+    has: () => true,
+    get: (target, key) => {
+      if (key === Symbol.unscopables) return {};
+      if (typeof key === 'symbol') return target[key];
+      if (key in target) return target[key];
+      const val = target(key);
+      if (val !== undefined) return val;
+      return globalThis[key];
+    }
+  });
 }
 
 class EmbraceRoot {
@@ -197,7 +202,7 @@ function extractFuncs(root, res = {}) {
           exp instanceof EmbraceCommentIf ? extractArgs(exp.exp) :
             undefined;
     const sep = `\n/* ==================== HTML ==================== */\n/*\n${root.templateElement.outerHTML}\n*/`;
-    res[exp.name] = `(args, v) => (v = ${code}, v !== undefined && v !== false && console.log('${exp.name}:', v), v) ${sep}`;
+    res[exp.name] = `(args, v) => { with(args({})) { return (v = ${code}, v !== undefined && v !== false && console.log('${exp.name}:', v), v); } } ${sep}`;
     if (exp.innerRoot)
       extractFuncs(exp.innerRoot, res);
   }

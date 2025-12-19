@@ -1,7 +1,7 @@
 const loophole = /\b(?:JSON.stringify|Object.values|Object.keys|Object.entries|(?:instanceof\s+(?:[\p{L}\p{N}_$]+)))\b/;
 const ignore = /\b(?:break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|function|if|implements|import|in|interface|let|new|null|package|private|protected|public|return|static|switch|throw|true|try|typeof|var|void|while|with|yield|async|await|\s+)\b/; //space are ignored
 const dotWords = /\.\s*[\p{L}_$][\p{L}\p{N}_$]*(?:\s*\.\s*[\p{L}\p{N}_$]+)*/u;
-const words = /#?[\p{L}_$][\p{L}\p{N}_$]*(?:\s*\.\s*[\p{L}\p{N}_$]+)*/u;
+const words = /(?:##?|\$\$?|¤)[\p{L}\p{N}_$]*/u;
 const quote1 = /'([^'\\]*(\\.[^'\\]*)*)'/;
 const quote2 = /"([^"\\]*(\\.[^"\\]*)*)"/;
 const number = /0[xX][0-9a-fA-F]+|\d*\.?\d+(?:[eE][+-]?\d+)?/;
@@ -10,13 +10,6 @@ const linecomment = /\/\/[^\n]*/;
 const starcomment = /\/\*[^]*?\*\//;
 
 //todo so many security problems. Mainly with ["lookup"] and ("something"||[]).dot.lookups
-
-//0. [].constructor. 
-//02. []["constructor"] => That will give us the Array object without any dotWords. Only [] lookups.
-//1. template strings: `comments ${here can come devils}`. strategy 1) make it throw an error, 2) tokenize ${} inside recursively?..
-//2. something["bad"].CAN.HAPPEN.HERE.constructor.__proto__.etc strategy a) make it throw an error? b) make the function work hiddenly?
-// const dangerous = /super|window|this|document|globalThis|arguments|Function|eval/;
-// These dangerous words are captured, replaced with args[1], and attempted gotten from the context. Thus, they are safe.
 
 const tokens = [loophole, ignore, words, dotWords, quote1, quote2, number, linecomment, starcomment, regex];
 const tokenizer = new RegExp(tokens.map(r => `(${r.source})`).join("|"), "gu");
