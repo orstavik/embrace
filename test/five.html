@@ -30,7 +30,7 @@
   async function main() {
     const app = document.getElementById("app");
     app.innerHTML = app.innerHTML.replace(/(<!\-\-|\-\->)/g, "");
-    const data = await (await fetch("SerSeaEpi.json")).json();
+    const data = await (await fetch("SerSeaEpi2.json")).json();
     embrace(app, data);
 
     setTimeout(_ => {
