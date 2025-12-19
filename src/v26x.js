@@ -27,7 +27,7 @@ function dotScope(data, superior, cache = {}) {
   return new Proxy(me, {
     has: () => true,
     get: (target, key) => {
-      if (key === Symbol.unscopables) return {};
+      if (key === Symbol.unscopables) return { __embrace_args: true };
       if (typeof key === 'symbol') return target[key];
       if (key in target) return target[key];
       const val = target(key);
@@ -202,7 +202,7 @@ function extractFuncs(root, res = {}) {
           exp instanceof EmbraceCommentIf ? extractArgs(exp.exp) :
             undefined;
     const sep = `\n/* ==================== HTML ==================== */\n/*\n${root.templateElement.outerHTML}\n*/`;
-    res[exp.name] = `(args, v) => { with(args({})) { return (v = ${code}, v !== undefined && v !== false && console.log('${exp.name}:', v), v); } } ${sep}`;
+    res[exp.name] = `(__embrace_args, v) => { with(__embrace_args({})) { return (v = ${code}, v !== undefined && v !== false && console.log('${exp.name}:', v), v); } } ${sep}`;
     if (exp.innerRoot)
       extractFuncs(exp.innerRoot, res);
   }
