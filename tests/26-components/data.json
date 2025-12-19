@@ -1,0 +1,18 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "Alice Smith",
+            "role": "Lead Architect",
+            "avatar": "👩‍💻",
+            "bio": "Building scalable template engines."
+        },
+        {
+            "id": 2,
+            "name": "Bob Jones",
+            "role": "Senior Developer",
+            "avatar": "👨‍💻",
+            "bio": "Loves micro-frameworks and performance."
+        }
+    ]
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>10 - JS Methods 2 (Custom Functions)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+
+        .highlight {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            background: #065f46;
+            color: #34d399;
+        }
+
+        .badge-inactive {
+            background: #7f1d1d;
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <div class="card">
+                <h3>User Profile</h3>
+                <p>Name: <span class="highlight">{{user.name}}</span></p>
+                <p>Status: <span class="badge {{getStatusClass(user.status)}}">{{formatLabel(user.status)}}</span></p>
+                <p>Role: {{toUpperCase(user.role)}}</p>
+                <p>Last Seen: {{formatDate(user.lastLogin)}}</p>
+            </div>
+
+            <div class="card">
+                <h3>Shopping Cart</h3>
+                <ul>
+                    <template for="item of cart">
+                        <li>{{item.name}}: {{item.qty}} x ${{item.price}} = <span
+                                class="highlight">${{calculateLineTotal(item)}}</span></li>
+                    </template>
+                </ul>
+                <hr style="border: 0; border-top: 1px solid #334155;">
+                <p>Total Items: {{cart.reduce((sum, i) => sum + i.qty, 0)}}</p>
+                <!-- <p>Total Items: {{calculateTotalItems(cart)}}</p> -->
+                <p>Grand Total: <span class="highlight">${{calculateGrandTotal(cart).toFixed(2)}}</span></p>
+            </div>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        // Custom functions to be used inside the template
+        const helpers = {
+            formatLabel: (text) => text.charAt(0).toUpperCase() + text.slice(1),
+            getStatusClass: (status) => status === 'active' ? 'badge-active' : 'badge-inactive',
+            formatDate: (dateStr) => new Date(dateStr).toLocaleDateString(),
+            calculateLineTotal: (item) => (item.price * item.qty).toFixed(2),
+            calculateGrandTotal: (items) => items.reduce((sum, i) => sum + (i.price * i.qty), 0),
+            toUpperCase: (text) => text.toUpperCase(),
+            calculateTotalItems: (items) => items.reduce((sum, i) => sum + i.qty, 0)
+        };
+
+        async function run() {
+            const data = await (await fetch("./data/10-js-methods-2.json")).json();
+
+            // Merge helpers into the data object so they are accessible by the template
+            const context = { ...data, ...helpers };
+
+            embrace(document.getElementById("app"), context);
+        }
+        run();
+    </script>
+</body>
+
+</html>

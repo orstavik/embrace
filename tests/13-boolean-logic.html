@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>13 - Boolean Logic</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .badge {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <template if="age >= 18 && verified">
+                <div class="badge">✅ Access Granted: Adult & Verified</div>
+            </template>
+
+            <template if="age < 18 || !verified">
+                <div class="badge">❌ Access Denied</div>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const data = await (await fetch("./data/13-boolean-logic.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>08 - Parent Scope Access</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .user {
+            background: #1e293b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .post {
+            background: #334155;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <template for="user of users">
+                <div class="user">
+                    <h2>{{user.name}}'s Posts</h2>
+                    <template for="post of user.posts">
+                        <div class="post">
+                            "{{post.title}}" (Author: {{user.name}})
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const data = await (await fetch("./data/08-parent-scope.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

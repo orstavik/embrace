@@ -1,0 +1,33 @@
+{
+    "title": "Article Dashboard",
+    "articles": [
+        {
+            "id": 1,
+            "title": "Introduction to Embrace",
+            "category": "Documentation",
+            "status": "published",
+            "excerpt": "Learn the basics of our lightweight template engine."
+        },
+        {
+            "id": 2,
+            "title": "Advanced Selectors",
+            "category": "Tutorial",
+            "status": "draft",
+            "excerpt": "Master CSS selectors for semantic styling."
+        },
+        {
+            "id": 3,
+            "title": "Performance Optimization",
+            "category": "Documentation",
+            "status": "published",
+            "excerpt": "Best practices for high-performance templates."
+        },
+        {
+            "id": 4,
+            "title": "Future Roadmap",
+            "category": "News",
+            "status": "archived",
+            "excerpt": "What's coming next in the 2026 releases."
+        }
+    ]
+}

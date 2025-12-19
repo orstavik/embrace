@@ -1,0 +1,11 @@
+{
+    "user": {
+        "profile": {
+            "name": "Lojith",
+            "address": {
+                "city": "Colombo",
+                "zip": "10110"
+            }
+        }
+    }
+}

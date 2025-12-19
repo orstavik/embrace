@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>19 - Re-render Behavior</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .msg {
+            font-size: 2rem;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #38bdf8;
+            border: none;
+            border-radius: 6px;
+            color: #0f172a;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <div class="msg">
+                {{message}}
+            </div>
+        </template>
+    </div>
+
+    <button id="btn">Click to Update</button>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const app = document.getElementById("app");
+            const data1 = await (await fetch("./data/19-rerender-1.json")).json();
+            const data2 = await (await fetch("./data/19-rerender-2.json")).json();
+
+            embrace(app, data1);
+
+            let toggle = false;
+            document.getElementById("btn").addEventListener("click", () => {
+                toggle = !toggle;
+                embrace(app, toggle ? data2 : data1);
+            });
+        }
+        run();
+    </script>
+</body>
+
+</html>

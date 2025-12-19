@@ -1,0 +1,19 @@
+{
+    "user": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "",
+        "role": "editor",
+        "bio": "test",
+        "newsletter": false,
+        "preferences": {
+            "theme": "dark",
+            "notifications": true
+        }
+    },
+    "roles": [
+        "admin",
+        "editor",
+        "viewer"
+    ]
+}

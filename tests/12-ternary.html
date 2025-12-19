@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>12 - Ternary Expressions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .online {
+            background: #059669;
+        }
+
+        .offline {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <h2>User Status</h2>
+            <span class="status {{isOnline ? 'online' : 'offline'}}">
+                {{isOnline ? 'Active Now' : 'Currently Offline'}}
+            </span>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const data = await (await fetch("./data/12-ternary.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>
