@@ -3,11 +3,14 @@ import TOKENIZER from "./DollarDotTokenizer.js";
 //assume correct js inside the ${...} and <!--:: ... -->
 
 function pathFunction(start) {
-  let res = [];
+  const res = [];
+  if (start instanceof Attr) {
+    res.push(start.name);
+    start = start.ownerElement;
+  }
   for (let n = start; !(n instanceof Document || n instanceof DocumentFragment); n = n.parentNode)
     res.unshift([...n.parentNode.childNodes].indexOf(n));
-  if (start instanceof Attr) res[res.length - 1] = start.name;
-  return `[${res.join(",")}]`;
+  return JSON.stringify(res);
 }
 
 function findEndComment(start) {
@@ -23,29 +26,26 @@ function findEndComment(start) {
     }
 }
 
-function parsePossibleTemplateNode(start) {
-  const txt = start.nodeValue.trim();
-  if (start.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
-    const id = TOKENIZER.readID(txt);
-    const end = findEndComment(start);
-    if (!end) { //implicit close at endOf siblings
-      start.parentNode.appendComment("::");
-      end = start.parentNode.lastChild;
-    }
-    return { start, end, id };
-  } else if (txt.indexOf("${") >= 0) {
-    return { start };
-  }
-}
-
 function* findDollarDots(node) {
-  const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL & ~NodeFilter.SHOW_ELEMENT, null, false);
-  while (traverser.nextNode()) {
-    const startEnd = parsePossibleTemplateNode(traverser.currentNode);
-    if (startEnd)
-      yield startEnd;
-    if (startEnd?.end)
-      traverser.currentNode = startEnd.end;
+  const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL, null, false);
+  for (let node; node = traverser.nextNode();) {
+    const txt = node.nodeValue?.trim();
+    if (node.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
+      const id = TOKENIZER.readID(txt);
+      const end = findEndComment(node);
+      if (!end) { //implicit close at endOf siblings
+        end = document.createComment("::");
+        node.parentNode.append(end);
+      }
+      const templ = { start: node, end, id };
+      traverser.currentNode = templ.end;
+      yield templ;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      for (let attr of node.attributes)
+        if (attr.value.indexOf("${") >= 0)
+          yield { start: attr };
+    } else if (txt.indexOf("${") >= 0)
+      yield { start: node };
   }
 }
 
