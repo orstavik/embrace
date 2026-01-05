@@ -67,7 +67,7 @@ function hydraStateReferences(txt, HashFunction) {
     return $h;
   });
   const hydra = Function("$", "run", exprBody);
-  return { hydra, stateReferences };
+  return { hydra, stateReferences: [...stateReferences] };
 }
 
 function compileTemplateNode({ start, id, end }) {
@@ -187,11 +187,9 @@ export class SquareDots {
   static compile(rootNode) {
     for (let n of this.findSquareDots(rootNode))
       if (n.end && !n.id)
-        for (let template of newlyCompiledTemplates(compileTemplateNode(n))) {
-          debugger
+        for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
           document.body.insertAdjacentHTML("beforeend",
             `<script>${printTemplateScript(template)}</script>`);
-        }
   }
 
   static * findRunnableTemplates(root) {
