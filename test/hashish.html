@@ -1,0 +1,26 @@
+<script type="module">
+
+  import HASH from "./hash.js";
+
+  function test(a, b, cb) {
+    const res = cb(a, hash => "$." + hash.slice(1).replaceAll(/\s+/g, ""));
+    console.log(b === res ? "✅" : "❌", a);
+    console.log(b);
+    console.log(res);
+    console.log("=======");
+  }
+
+  const CONDITION_TESTS = [
+    ["   for  (#bob of #array  . bob) run('_1234abcd')", "   for  ($.bob of $.array.bob) run('_1234abcd')"],
+    ["   if  (#bob = #array  . bob) run('_1234abcd')", "   if  ($.bob = $.array.bob) run('_1234abcd')"],
+  ];
+
+  const TEMPLATE_TESTS = [
+    ["   ${#bob} run('_1234abcd')", "   ${$.bob} run('_1234abcd')"],
+  ];
+
+  for (let [a, b] of CONDITION_TESTS)
+    test(a, b, HASH.ifFor);
+  for (let [a, b] of TEMPLATE_TESTS)
+    test(a, b, HASH.templateString);
+</script>
