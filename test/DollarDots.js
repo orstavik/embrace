@@ -23,35 +23,16 @@ function parsePossibleTemplateNode(start) {
   }
 }
 
-function* findDollarDots(nodes) {
-  for (let node of nodes) {
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-      const startEnd = parsePossibleTemplateNode(node);
-      if (startEnd) {
-        yield startEnd;
-        continue;
-      }
-    }
-    const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL, null, false);
-    while (traverser.nextNode()) {
-      const startEnd = parsePossibleTemplateNode(traverser.currentNode);
-      if (startEnd)
-        yield startEnd;
-      if (startEnd?.end)
-        traverser.currentNode = startEnd.end;
-    }
+function* findDollarDots(node) {
+  const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL & ~NodeFilter.SHOW_ELEMENT, null, false);
+  while (traverser.nextNode()) {
+    const startEnd = parsePossibleTemplateNode(traverser.currentNode);
+    if (startEnd)
+      yield startEnd;
+    if (startEnd?.end)
+      traverser.currentNode = startEnd.end;
   }
 }
-
-// function extractNodesBetween(start, end) {
-//   return templEl;
-// }
-
-// function nodesToString(nodes) {
-//   const tmp = document.createElement("template");
-//   tmp.content.append(...nodes);
-//   return tmp.innerHTML;
-// }
 
 function compileTemplateNode({ start, id, end }) {
   const path = pathFunction(start);
@@ -71,7 +52,7 @@ function compileTemplateNode({ start, id, end }) {
   const templateString = templEl.innerHTML;
 
   const innerHydras = [];
-  for (let inner of findDollarDots(templEl.content.childNodes))
+  for (let inner of findDollarDots(templEl.content))
     innerHydras.push(compileTemplateNode(inner));
 
   const hydra = `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`;
@@ -182,19 +163,17 @@ function render({ start, id, end }, state) {
 
 export class DollarDots {
 
-  static * findDollarDots(root) { yield* findDollarDots(root.childNodes); }
-
   static render(cNode, state) { return render(cNode, state); }
 
   static compile(rootNode) {
-    for (let n of this.findDollarDots(rootNode))
+    for (let n of findDollarDots(rootNode))
       if (n.end && !n.id)
         for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
           document.body.appendChild(makeTemplateScript(template));
   }
 
   static * findRunnableTemplates(root) {
-    for (let n of this.findDollarDots(root))
+    for (let n of findDollarDots(root))
       if (n.id)   //todo here we can check that the id exists in window.dollarDots.
         yield n;
   }
