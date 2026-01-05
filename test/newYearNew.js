@@ -8,7 +8,7 @@ function pathFunction(start) {
   for (let n = start; !(n instanceof Document || n instanceof DocumentFragment); n = n.parentNode)
     res.unshift([...n.parentNode.childNodes].indexOf(n));
   if (start instanceof Attr) res[res.length - 1] = start.name;
-  return res;
+  return `[${res.join(",")}]`;
 }
 
 function parsePossibleTemplateNode(start) {
@@ -60,14 +60,16 @@ function makeId(node) {
 }
 
 function hydraStateReferences(txt, HashFunction) {
-  const stateReferences = new Set();
-  const exprBody = HashFunction(txt, h => {
+  let dollars = new Set();
+  //todo make this into $. instead of #, where we make sure that $. is not preceded by (?!<[a-zA-Z0-9_.]\s*)\$\.
+  let body = HashFunction(txt, h => {
     const $h = "$." + h.slice(1).replaceAll(/\s+/g, "");
-    stateReferences.add($h);
+    dollars.add($h);
     return $h;
-  });
-  const hydra = Function("$", "run", exprBody);
-  return { hydra, stateReferences: [...stateReferences] };
+  }).trim();
+  if (body.match(/^(if|for)\s*\(/, "gu"))
+    body = `{${body}}`;
+  return { hydra: "($, run) => " + body, stateReferences: `$ => [${[...dollars].join(",")}]` };
 }
 
 function compileTemplateNode({ start, id, end }) {
@@ -104,10 +106,24 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-function printTemplateScript(template) {
-  const json = JSON.stringify(template, (k, v) =>
-    (typeof v === 'function') ? v.toString() : v, 2);
-  return `window.squareDots[${template.id}] = ${json};`
+function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, templateString }) {
+  let inner = innerHydras.map(({ id, path, hydra, stateReferences }) =>
+    id ? `{ path: ${path}, id: "${id}" }` :
+      `{ path: ${path}, stateReferences: ${stateReferences}, hydra: ${hydra} }`
+  );
+  inner = inner.length == 1 ? "[" + inner[0] + "]" :
+    "[\n    " + inner.join(",\n    ") + "\n  ]";
+  const script = document.createElement('script');
+  script.textContent = `"use strict";
+(window.squareDots ??= {}).${id} = {
+  id: "${id}",
+  path: ${path},
+  hydra: ${hydra},
+  stateReferences: ${stateReferences},
+  innerHydras: ${inner},
+  templateString: ${JSON.stringify(templateString)}
+}`;
+  return script;
 }
 
 function render(state, commentNode) {
@@ -188,8 +204,7 @@ export class SquareDots {
     for (let n of this.findSquareDots(rootNode))
       if (n.end && !n.id)
         for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
-          document.body.insertAdjacentHTML("beforeend",
-            `<script>${printTemplateScript(template)}</script>`);
+          document.body.appendChild(makeTemplateScript(template));
   }
 
   static * findRunnableTemplates(root) {
