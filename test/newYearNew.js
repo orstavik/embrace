@@ -5,7 +5,7 @@ import HASH from "./hash.js";
 
 function pathFunction(start) {
   let res = [];
-  for (let n = start; n instanceof Comment || n instanceof Attr || n instanceof Element; n = n.parentNode)
+  for (let n = start; !(n instanceof Document || n instanceof DocumentFragment); n = n.parentNode)
     res.unshift([...n.parentNode.childNodes].indexOf(n));
   if (start instanceof Attr) res[res.length - 1] = start.name;
   return res;
@@ -75,10 +75,10 @@ function compileTemplateNode({ start, id, end }) {
   if (!end)
     return { path, ...hydraStateReferences('`' + start.nodeValue + '`', HASH.templateString) };
 
+  const body = extractNodesBetween(start, end);
   if (id)
     return { id, path };
 
-  const body = extractNodesBetween(start, end);
   const templateEl = document.createElement("template");
   templateEl.content.append(...body);
   const templateString = templateEl.innerHTML;
@@ -94,6 +94,14 @@ function compileTemplateNode({ start, id, end }) {
     templateString,
     innerHydras,
   };
+}
+
+function* newlyCompiledTemplates(template) {
+  if (template.id && template.innerHydras) {
+    yield template;
+    for (let inner of template.innerHydras)
+      yield* newlyCompiledTemplates(inner);
+  }
 }
 
 function printTemplateScript(template) {
@@ -179,8 +187,11 @@ export class SquareDots {
   static compile(rootNode) {
     for (let n of this.findSquareDots(rootNode))
       if (n.end && !n.id)
-        document.body.insertAdjacentHTML("beforeend",
-          `<script>${printTemplateScript(compileTemplateNode(n))}</script>`);
+        for (let template of newlyCompiledTemplates(compileTemplateNode(n))) {
+          debugger
+          document.body.insertAdjacentHTML("beforeend",
+            `<script>${printTemplateScript(template)}</script>`);
+        }
   }
 
   static * findRunnableTemplates(root) {
