@@ -10,15 +10,30 @@ function pathFunction(start) {
   return `[${res.join(",")}]`;
 }
 
+function findEndComment(start) {
+  for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
+    if (end.nodeType === Node.COMMENT_NODE) {
+      const endTxt = end.nodeValue.trim();
+      if (!depth && endTxt == "::")
+        return end;
+      if (endTxt == "::")
+        depth--;
+      else if (endTxt.startsWith(":: "))
+        depth++;
+    }
+}
+
 function parsePossibleTemplateNode(start) {
-  if (start.nodeType === Node.COMMENT_NODE && start.nodeValue.trim().startsWith(":: ")) {
-    const parent = start.parentNode;
-    let end = parent.childNodes[parent.childNodes.length - 1];
-    while (end.nodeType !== Node.COMMENT_NODE || end.nodeValue.trim() != "::")
-      end = end.previousSibling;
-    const id = TOKENIZER.readID(start.nodeValue);
+  const txt = start.nodeValue.trim();
+  if (start.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
+    const id = TOKENIZER.readID(txt);
+    const end = findEndComment(start);
+    if (!end) { //implicit close at endOf siblings
+      start.parentNode.appendComment("::");
+      end = start.parentNode.lastChild;
+    }
     return { start, end, id };
-  } else if (start.nodeValue.indexOf("${") >= 0) {
+  } else if (txt.indexOf("${") >= 0) {
     return { start };
   }
 }
