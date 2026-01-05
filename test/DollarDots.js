@@ -16,7 +16,7 @@ function parsePossibleTemplateNode(start) {
     let end = parent.childNodes[parent.childNodes.length - 1];
     while (end.nodeType !== Node.COMMENT_NODE || end.nodeValue.trim() != "::")
       end = end.previousSibling;
-    const id = TOKENIZER.ID(start.nodeValue);
+    const id = TOKENIZER.readID(start.nodeValue);
     return { start, end, id };
   } else if (start.nodeValue.indexOf("${") >= 0) {
     return { start };
