@@ -20,7 +20,7 @@ function dollarDotReader(KEY, END) {
       for (let m of txt.slice(i).matchAll(Rx)) {
         const [ALL, Q, _Q1, C, C2, DOLLAR_DOT, START, END] = m;
         if (DOLLAR_DOT)
-          res.add(DOLLAR_DOT.replace(/\s+/g, "")); 
+          res.add(DOLLAR_DOT.replace(/\s+/g, ""));
         else if (START)
           depth++;
         else if (END && depth)
@@ -38,5 +38,6 @@ function dollarDotReader(KEY, END) {
 
 export default {
   ifFor: dollarDotReader(/(if|for)\s*\(/, ")"),
-  templateString: dollarDotReader(/\$\{/, "}")
+  templateString: dollarDotReader(/\$\{/, "}"),
+  ID: txt => txt.match(/^::\s+(_[a-z0-9]+)\s*$/u)?.[1],
 };

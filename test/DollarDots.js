@@ -16,7 +16,7 @@ function parsePossibleTemplateNode(start) {
     let end = parent.childNodes[parent.childNodes.length - 1];
     while (end.nodeType !== Node.COMMENT_NODE || end.nodeValue.trim() != "::")
       end = end.previousSibling;
-    const id = start.nodeValue.match(/run\("([\w\d]+)"\)\s*;?\s*$/, "gu")?.[1];
+    const id = TOKENIZER.ID(start.nodeValue);
     return { start, end, id };
   } else if (start.nodeValue.indexOf("${") >= 0) {
     return { start };
@@ -43,55 +43,47 @@ function* findDollarDots(nodes) {
   }
 }
 
-function extractNodesBetween(start, end) {
-  const res = [];
-  while (start.nextSibling != end) {
-    res.push(start.nextSibling);
-    start.nextSibling.remove();
-  }
-  return res;
-}
+// function extractNodesBetween(start, end) {
+//   return templEl;
+// }
 
-function makeId(node) {
-  const id = "_" + Math.random().toString(36).slice(2);
-  node.nodeValue += ` run("${id}");`;
-  return id;
-}
-
-function hydraStateReferences(txt, HashFunction) {
-  // let dollars = new Set();
-  // let dollars = ;
-  // , h => {
-  //   const $h = "$." + h.slice(1).replaceAll(/\s+/g, "");
-  //   dollars.add($h);
-  //   return $h;
-  // }).trim();
-  txt = txt.trim();
-  const hydra = txt.match(/^(if|for)\s*\(/, "gu") ? `($, run) => {${txt}}` : "$ => " + txt;
-  return { hydra, stateReferences: `$ => [${HashFunction(txt).join(",")}]` };
-}
+// function nodesToString(nodes) {
+//   const tmp = document.createElement("template");
+//   tmp.content.append(...nodes);
+//   return tmp.innerHTML;
+// }
 
 function compileTemplateNode({ start, id, end }) {
   const path = pathFunction(start);
   if (!end)
-    return { path, ...hydraStateReferences('`' + start.nodeValue + '`', TOKENIZER.templateString) };
+    return {
+      path,
+      stateReferences: `$ => [${TOKENIZER.templateString(start.nodeValue).join(",")}]`,
+      hydra: "$ => `" + start.nodeValue + "`",
+    };
 
-  const body = extractNodesBetween(start, end);
   if (id)
     return { id, path };
 
-  const templateEl = document.createElement("template");
-  templateEl.content.append(...body);
-  const templateString = templateEl.innerHTML;
+  const templEl = document.createElement("template");
+  while (start.nextSibling != end)
+    templEl.content.append(start.nextSibling);
+  const templateString = templEl.innerHTML;
 
   const innerHydras = [];
-  for (let inner of findDollarDots(body))
+  for (let inner of findDollarDots(templEl.content.childNodes))
     innerHydras.push(compileTemplateNode(inner));
 
+  const hydra = `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`;
+  const stateReferences = `$ => [${TOKENIZER.ifFor(start.nodeValue).join(",")}]`;
+  id = "_" + Math.random().toString(36).slice(2);
+  start.nodeValue = ":: " + id;
+
   return {
-    id: makeId(start),
+    id,
     path,
-    ...hydraStateReferences(start.nodeValue.slice(2), TOKENIZER.ifFor),
+    stateReferences,
+    hydra,
     templateString,
     innerHydras,
   };
