@@ -125,27 +125,22 @@ function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, tem
   return script;
 }
 
-function render(state, commentNode) {
-  //1. memoize outside
-  if (commentNode.__previousInputState === state)
-    return;
-  commentNode.__previousInputState = state;
+function render({ start, id, end }, state) {
+  debugger;
 
-  //2. prep run function
-  let getArgsFunc;
-  const newArgsToNodes = new Map();
-  const __state = Object.assign({}, inputState);
-  function run(id) {
-    getArgsFunc ??= window.dollarDots[id].referenceListFunction;
-    newArgsToNodes.set(getArgsFunc(__state), null);
-  };
+  //1. setup run()
+  const DollarDots = window.dollarDots[id];
+  if (!DollarDots)
+    throw new Error(`No DollarDots found for id: ${id}`);
+  const argCombos = [];
+  const __state = Object.assign({}, state);
+  const run = id => argCombos.push(DollarDots.stateReferences(__state)); //todo don't need id actually..
 
-  //3. run the loop and produce listOfArgsOnly
-  for (__state.hello of __state.sunshine)    //direct from html
-    run("_1234abcd");                       //direct from html
+  //2. run outer hydra with __state and run
+  DollarDots.hydra(__state, run);
 
   //4. reuse exact matches (
-  const oldArgsToNodes = commentNode.__previousArgumentsToNodes;
+  const oldArgsToNodes = cNode.__previousArgumentsToNodes;
   for (let argsList of newArgsToNodes.keys()) {
     const nodes = oldArgsToNodes.get(argsList);
     if (!nodes) continue;
@@ -153,7 +148,7 @@ function render(state, commentNode) {
     oldArgsToNodes.remove(argsList);
   }
   if (newArgsToNodes.values().every(nodes => !!nodes)) {
-    commentNode.__previousArgumentsToNodes = newArgsToNodes;
+    cNode.__previousArgumentsToNodes = newArgsToNodes;
     return;
   }
   //5. we prep hydration function
@@ -184,20 +179,20 @@ function render(state, commentNode) {
   for (let n of oldArgsToNodes.values().flat())
     n.remove();
   //8. fix the sequence of the nodes in the dom by re-appending them
-  let x = commentNode;
+  let x = cNode;
   for (let n of newArgsToNodes.values().flat()) {
     x.appendSibling(n);
     x = n;
   }
   //9. update state on the node
-  commentNode.__previousArgumentsToNodes = newArgsToNodes;
+  cNode.__previousArgumentsToNodes = newArgsToNodes;
 }
 
 export class DollarDots {
 
   static * findDollarDots(root) { yield* findDollarDots(root.childNodes); }
 
-  static render(state, commentNode) { return render(state, commentNode); }
+  static render(cNode, state) { return render(cNode, state); }
 
   static compile(rootNode) {
     for (let n of this.findDollarDots(rootNode))
