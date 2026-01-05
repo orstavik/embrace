@@ -1,7 +1,6 @@
-import HASH from "./hash.js";
+import TOKENIZER from "./DollarDotTokenizer.js";
 
-//assume correct structures
-//assume that we don't assign to #something.with.a.dot
+//assume correct js inside the ${...} and <!--:: ... -->
 
 function pathFunction(start) {
   let res = [];
@@ -24,7 +23,7 @@ function parsePossibleTemplateNode(start) {
   }
 }
 
-function* findSquareDots(nodes) {
+function* findDollarDots(nodes) {
   for (let node of nodes) {
     if (node.nodeType !== Node.ELEMENT_NODE) {
       const startEnd = parsePossibleTemplateNode(node);
@@ -60,22 +59,22 @@ function makeId(node) {
 }
 
 function hydraStateReferences(txt, HashFunction) {
-  let dollars = new Set();
-  //todo make this into $. instead of #, where we make sure that $. is not preceded by (?!<[a-zA-Z0-9_.]\s*)\$\.
-  let body = HashFunction(txt, h => {
-    const $h = "$." + h.slice(1).replaceAll(/\s+/g, "");
-    dollars.add($h);
-    return $h;
-  }).trim();
-  if (body.match(/^(if|for)\s*\(/, "gu"))
-    body = `{${body}}`;
-  return { hydra: "($, run) => " + body, stateReferences: `$ => [${[...dollars].join(",")}]` };
+  // let dollars = new Set();
+  // let dollars = ;
+  // , h => {
+  //   const $h = "$." + h.slice(1).replaceAll(/\s+/g, "");
+  //   dollars.add($h);
+  //   return $h;
+  // }).trim();
+  txt = txt.trim();
+  const hydra = txt.match(/^(if|for)\s*\(/, "gu") ? `($, run) => {${txt}}` : "$ => " + txt;
+  return { hydra, stateReferences: `$ => [${HashFunction(txt).join(",")}]` };
 }
 
 function compileTemplateNode({ start, id, end }) {
   const path = pathFunction(start);
   if (!end)
-    return { path, ...hydraStateReferences('`' + start.nodeValue + '`', HASH.templateString) };
+    return { path, ...hydraStateReferences('`' + start.nodeValue + '`', TOKENIZER.templateString) };
 
   const body = extractNodesBetween(start, end);
   if (id)
@@ -86,13 +85,13 @@ function compileTemplateNode({ start, id, end }) {
   const templateString = templateEl.innerHTML;
 
   const innerHydras = [];
-  for (let inner of findSquareDots(body))
+  for (let inner of findDollarDots(body))
     innerHydras.push(compileTemplateNode(inner));
 
   return {
     id: makeId(start),
     path,
-    ...hydraStateReferences(start.nodeValue.slice(2), HASH.ifFor),
+    ...hydraStateReferences(start.nodeValue.slice(2), TOKENIZER.ifFor),
     templateString,
     innerHydras,
   };
@@ -115,7 +114,7 @@ function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, tem
     "[\n    " + inner.join(",\n    ") + "\n  ]";
   const script = document.createElement('script');
   script.textContent = `"use strict";
-(window.squareDots ??= {}).${id} = {
+(window.dollarDots ??= {}).${id} = {
   id: "${id}",
   path: ${path},
   hydra: ${hydra},
@@ -137,7 +136,7 @@ function render(state, commentNode) {
   const newArgsToNodes = new Map();
   const __state = Object.assign({}, inputState);
   function run(id) {
-    getArgsFunc ??= window.squareDots[id].referenceListFunction;
+    getArgsFunc ??= window.dollarDots[id].referenceListFunction;
     newArgsToNodes.set(getArgsFunc(__state), null);
   };
 
@@ -158,7 +157,7 @@ function render(state, commentNode) {
     return;
   }
   //5. we prep hydration function
-  const triplets = window.squareDots[id].innerTripplets;
+  const triplets = window.dollarDots[id].innerTripplets;
   function hydrate(nodes, state) {
     for (let trip of triplets) {
       let node = trip.findPath(nodes);
@@ -176,7 +175,7 @@ function render(state, commentNode) {
       nodes = oldNodes;
     } else {
       const tmp = document.createElement("template");
-      tmp.innerHTML = window.squareDots[id].templateString;
+      tmp.innerHTML = window.dollarDots[id].templateString;
       nodes = tmp.content.childNodes;
     }
     newArgsToNodes.set(argsList, hydrate(nodes, __state));
@@ -194,22 +193,22 @@ function render(state, commentNode) {
   commentNode.__previousArgumentsToNodes = newArgsToNodes;
 }
 
-export class SquareDots {
+export class DollarDots {
 
-  static * findSquareDots(root) { yield* findSquareDots(root.childNodes); }
+  static * findDollarDots(root) { yield* findDollarDots(root.childNodes); }
 
   static render(state, commentNode) { return render(state, commentNode); }
 
   static compile(rootNode) {
-    for (let n of this.findSquareDots(rootNode))
+    for (let n of this.findDollarDots(rootNode))
       if (n.end && !n.id)
         for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
           document.body.appendChild(makeTemplateScript(template));
   }
 
   static * findRunnableTemplates(root) {
-    for (let n of this.findSquareDots(root))
-      if (n.id)   //todo here we can check that the id exists in window.squareDots.
+    for (let n of this.findDollarDots(root))
+      if (n.id)   //todo here we can check that the id exists in window.dollarDots.
         yield n;
   }
 }
