@@ -1,10 +1,10 @@
 <h1>hello</h1>
 <!--:: if($.header)  -->
-<h2 alice="${$.bob}">hello ${$.sunshine}</h2>
+<h2 alice="${$.bob.join(',')}">hello ${$.sunshine}</h2>
 <h2>hello ${$.world}</h2>
 
-<!--:: if($ . text) -->
-<p>${$.text}</p>
+<!--:: if($ . text) for($.a of $.alice) for($.b of $.bob) -->
+<p>${$.text} - alice likes: ${$.a} bob likes: ${$.b}</p>
 <!--::-->
 
 <!--::-->
@@ -23,6 +23,8 @@
     world: "beautiful world",
     text: "text",
     header: true,
+    bob: ["red", "green", "blue"],
+    alice: ["red", "green", "blue"],
   });
 
   for (let { start, id, end } of runnables)
