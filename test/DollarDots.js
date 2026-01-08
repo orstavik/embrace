@@ -52,11 +52,7 @@ function* findDollarDots(node) {
 function compileTemplateNode({ start, id, end }) {
   const path = pathFunction(start);
   if (!end)
-    return {
-      path,
-      stateReferences: `$ => [${TOKENIZER.templateString(start.nodeValue).join(",")}]`,
-      hydra: "$ => `" + start.nodeValue + "`",
-    };
+    return { path, hydra: "$ => `" + start.nodeValue + "`", };
 
   if (id)
     return { id, path };
@@ -71,14 +67,12 @@ function compileTemplateNode({ start, id, end }) {
 
   const templateString = templEl.innerHTML;
   const hydra = `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`;
-  const stateReferences = `$ => [${TOKENIZER.ifFor(start.nodeValue).join(",")}]`;
   id = "_" + Math.random().toString(36).slice(2);
   start.nodeValue = ":: " + id;
 
   return {
     id,
     path,
-    stateReferences,
     hydra,
     templateString,
     innerHydras,
@@ -93,11 +87,8 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, templateString }) {
-  let inner = innerHydras.map(({ id, path, hydra, stateReferences }) =>
-    id ? `{ path: ${path}, id: "${id}" }` :
-      `{ path: ${path}, stateReferences: ${stateReferences}, hydra: ${hydra} }`
-  );
+function makeTemplateScript({ path, hydra, id, innerHydras, templateString }) {
+  let inner = innerHydras.map(({ id, path, hydra }) => id ? `{ path: ${path}, id: "${id}" }` : `{ path: ${path}, hydra: ${hydra} }`);
   inner = inner.length == 1 ? "[" + inner[0] + "]" :
     "[\n    " + inner.join(",\n    ") + "\n  ]";
   const script = document.createElement('script');
@@ -106,7 +97,6 @@ function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, tem
   id: "${id}",
   path: ${path},
   hydra: ${hydra},
-  stateReferences: ${stateReferences},
   innerHydras: ${inner},
   templateString: ${JSON.stringify(templateString)}
 }`;

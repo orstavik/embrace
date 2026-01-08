@@ -12,7 +12,7 @@ export function RenderOne(state, start, end, DollarDotsDef) {
   const newNodes = [];
   DollarDotsDef.hydra(__state, function run() {
     const root = makeDocFrag(DollarDotsDef.templateString);
-    for (let { path, id, hydra, stateReferences } of DollarDotsDef.innerHydras) {
+    for (let { path, id, hydra } of DollarDotsDef.innerHydras) {
       const n = reducePath(root, path);
       id ?
         RenderOne(__state, n, n.nextSibling, window.dollarDots[id]) :
@@ -29,7 +29,7 @@ export function RenderTwo(state, start, end, DollarDotsDef) {
   const __state = Object.assign({}, state);
   DollarDotsDef.hydra(__state, function run() {
     const root = makeDocFrag(DollarDotsDef.templateString);
-    for (let { path, id, hydra, stateReferences } of DollarDotsDef.innerHydras) {
+    for (let { path, id, hydra } of DollarDotsDef.innerHydras) {
       const n = reducePath(root, path);
       id ?
         RenderTwo(__state, n, n.nextSibling, window.dollarDots[id]) :
