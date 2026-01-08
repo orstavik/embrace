@@ -113,68 +113,6 @@ function makeTemplateScript({ path, hydra, id, stateReferences, innerHydras, tem
   return script;
 }
 
-// function endRun(__state, nowMap, previousMap) {
-//   //4. reuse exact matches (
-//   const oldArgsToNodes = cNode.__previousArgumentsToNodes;
-//   for (let argsList of newArgsToNodes.keys()) {
-//     const nodes = oldArgsToNodes.get(argsList);
-//     if (!nodes) continue;
-//     newArgsToNodes.set(argsList, reuseNodes);
-//     oldArgsToNodes.remove(argsList);
-//   }
-//   if (newArgsToNodes.values().every(nodes => !!nodes)) {
-//     cNode.__previousArgumentsToNodes = newArgsToNodes;
-//     return;
-//   }
-//   //5. we prep hydration function
-//   const triplets = window.dollarDots[id].innerTripplets;
-//   function hydrate(nodes, state) {
-//     for (let trip of triplets) {
-//       let node = trip.findPath(nodes);
-//       if (trip.ifOrFor) bigMama(state, node);
-//       else node.nodeValue = trip.hydrationFunction(state);
-//     }
-//   }
-
-//   //6. reuse closest matches, then make new nodes
-//   for (let argsList of newArgsToNodes.keys()) {
-//     let nodes;
-//     if (oldArgsToNodes.size) {
-//       const [oldArgs, oldNodes] = oldArgsToNodes.entries()[0]; //if the map is special, we can do getNearest()
-//       oldArgsToNodes.remove(oldArgs);
-//       nodes = oldNodes;
-//     } else {
-//       const tmp = document.createElement("template");
-//       tmp.innerHTML = window.dollarDots[id].templateString;
-//       nodes = tmp.content.childNodes;
-//     }
-//     newArgsToNodes.set(argsList, hydrate(nodes, __state));
-//   }
-// }
-
-// function render({ start, id, end }, state /*, start, step, end*/) {
-//   //1. setup run()
-//   start(state, start, end, window.dollarDots[id]);
-
-//   const DollarDots = window.dollarDots[id];
-//   const __state = Object.assign({}, state);
-
-//   //2. run outer hydra with __state and run
-//   DollarDots.hydra(__state, _ => endRun(__state, nowMap, previousMap));
-
-//   //7. remove all nodes that has not been reused
-//   for (let n of oldArgsToNodes.values().flat())
-//     n.remove();
-//   //8. fix the sequence of the nodes in the dom by re-appending them
-//   let x = cNode;
-//   for (let n of newArgsToNodes.values().flat()) {
-//     x.appendSibling(n);
-//     x = n;
-//   }
-//   //9. update state on the node
-//   cNode.__previousArgumentsToNodes = newArgsToNodes;
-// }
-
 import { RenderOne } from "./DDRenderOne.js";
 export class DollarDots {
 
@@ -187,6 +125,12 @@ export class DollarDots {
       if (n.end && !n.id)
         for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
           document.body.appendChild(makeTemplateScript(template));
+  }
+
+  static findDollarDots(root, runnable = true) {
+    return [...findDollarDots(root)]
+      .map(n => ({ ...n, Def: window.dollarDots[n.id] }))
+      .filter(n => runnable ^ !n.id);
   }
 
   static * findRunnableTemplates(root) {
