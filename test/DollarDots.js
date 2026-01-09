@@ -86,14 +86,14 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-import { pojoStringify } from "./stringify.js";
+import POJO from "./stringify.js";
 function makeTemplateScript(template) {
   const obj = {
     ...template,
     innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
   };
   const script = document.createElement('script');
-  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${pojoStringify(obj, null, 2, 120)};`;
+  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${POJO.stringify(obj, null, 2, 120)};`;
   return script;
 }
 

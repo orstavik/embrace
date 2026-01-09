@@ -15,9 +15,8 @@ function _maxWidth(txt, indent, maxWidth) {
   }
   return txt;
 }
-
 const SimpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":/gu;
-export function pojoStringify(obj, replacer, indent, maxWidth) {
+function stringify(obj, replacer, indent, maxWidth) {
   if (replacer && !(replacer instanceof Function))
     throw new TypeError("replacer must be a function");
   if (typeof indent == "number")
@@ -31,4 +30,13 @@ export function pojoStringify(obj, replacer, indent, maxWidth) {
     .replaceAll(FunkyRx, (_, f) => f.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\'))
     .replaceAll(SimpleNamesInQuotes, (_, n) => n + ":");
   return _maxWidth(jsTxt, indent, maxWidth);
+}
+
+function parse(txt) {
+  return Function("return (" + txt + ")").call(null);
+}
+
+export default {
+  stringify,
+  parse
 }
