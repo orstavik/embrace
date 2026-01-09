@@ -15,7 +15,7 @@ function _maxWidth(txt, indent, maxWidth) {
   }
   return txt;
 }
-const SimpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":/gu;
+const SimpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":|("(?:\\[\s\S]|[^"\\])*")/gu;
 function stringify(obj, replacer, indent, maxWidth) {
   if (replacer && !(replacer instanceof Function))
     throw new TypeError("replacer must be a function");
@@ -28,7 +28,7 @@ function stringify(obj, replacer, indent, maxWidth) {
     (k, v) => v instanceof Function ? FUNKY + v + FUNKY : v;
   const jsTxt = JSON.stringify(obj, doFunky, indent)
     .replaceAll(FunkyRx, (_, f) => f.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\'))
-    .replaceAll(SimpleNamesInQuotes, (_, n) => n + ":");
+    .replaceAll(SimpleNamesInQuotes, (_, n, q) => q || (n + ":"));
   return _maxWidth(jsTxt, indent, maxWidth);
 }
 
