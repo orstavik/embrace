@@ -16,38 +16,19 @@ function _maxWidth(txt, indent, maxWidth) {
   return txt;
 }
 
-const IllegalPrefix = {};
-function prefixProblem(IllegalPrefix, s) {
-  if (typeof s == "string" && s.startsWith(IllegalPrefix))
-    throw IllegalPrefix;
-}
-
-function wrapReplacer(REPLACER, IllegalPrefix) {
-  if (REPLACER && !(REPLACER instanceof Function))
-    throw new TypeError("replacer must be a function");
-  return REPLACER ?
-    (k, v) => prefixProblem(IllegalPrefix, v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : REPLACER(k, v) :
-    (k, v) => prefixProblem(IllegalPrefix, v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : v;
-}
-
-function _pojoStringify(obj, replacer, indent, maxWidth, FUNKY) {
-  const replacerWrapper = wrapReplacer(replacer, FUNKY);
-  const txt = JSON.stringify(obj, replacerWrapper, indent)
-    .replaceAll(simpleNamesInQuotes, (_, n) => n + ":")
-    .replaceAll(new RegExp(`"${FUNKY}([\\s\\S]*?)${FUNKY}"`, "g"),
-      (_, q) => q.replaceAll("\\\\", "\\"));
-  return _maxWidth(txt, indent, maxWidth);
-}
-
-const simpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":/gu;
+const SimpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":/gu;
 export function pojoStringify(obj, replacer, indent, maxWidth) {
+  if (replacer && !(replacer instanceof Function))
+    throw new TypeError("replacer must be a function");
   if (typeof indent == "number")
     indent = " ".repeat(indent);
-  for (let i = 0; i < 10; i++)
-    try {
-      return _pojoStringify(obj, replacer, indent, maxWidth, "FUNKY" + Math.random().toString(36).slice(2));
-    } catch (e) {
-      if (e !== IllegalPrefix) throw e;
-      //the FUNKY prefix is not unique enough
-    }
+  const FUNKY = crypto.randomUUID();
+  const FunkyRx = new RegExp(`"${FUNKY}([\\s\\S]*?)${FUNKY}"`, "g");
+  const doFunky = replacer ?
+    (k, v) => v instanceof Function ? FUNKY + v + FUNKY : replacer(k, v) :
+    (k, v) => v instanceof Function ? FUNKY + v + FUNKY : v;
+  const jsTxt = JSON.stringify(obj, doFunky, indent)
+    .replaceAll(FunkyRx, (_, f) => f.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\'))
+    .replaceAll(SimpleNamesInQuotes, (_, n) => n + ":");
+  return _maxWidth(jsTxt, indent, maxWidth);
 }

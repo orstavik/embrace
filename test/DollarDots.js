@@ -66,7 +66,7 @@ function compileTemplateNode({ start, id, end }) {
 
   const templateString = templEl.innerHTML;
   const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
-  id = "_" + Math.random().toString(36).slice(2);
+  id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;
 
   return {
