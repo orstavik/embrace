@@ -24,7 +24,7 @@ function stringify(obj, replacer, indent, maxWidth) {
   const FUNKY = crypto.randomUUID();
   const FunkyRx = new RegExp(`"${FUNKY}([\\s\\S]*?)${FUNKY}"`, "g");
   const doFunky = replacer ?
-    (k, v) => v instanceof Function ? FUNKY + v + FUNKY : replacer(k, v) :
+    (k, v) => (v = replacer(k, v), v instanceof Function ? FUNKY + v + FUNKY : v) :
     (k, v) => v instanceof Function ? FUNKY + v + FUNKY : v;
   const jsTxt = JSON.stringify(obj, doFunky, indent)
     .replaceAll(FunkyRx, (_, f) => f.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\'))
@@ -32,11 +32,11 @@ function stringify(obj, replacer, indent, maxWidth) {
   return _maxWidth(jsTxt, indent, maxWidth);
 }
 
-function parse(txt) {
+function unsafeParse(txt) {
   return Function("return (" + txt + ")").call(null);
 }
 
 export default {
   stringify,
-  parse
+  unsafeParse,
 }
