@@ -16,33 +16,38 @@ function _maxWidth(txt, indent, maxWidth) {
   return txt;
 }
 
-const wrapReplacer = (REPLACER, IllegalPrefix) => {
+const IllegalPrefix = {};
+function prefixProblem(IllegalPrefix, s) {
+  if (typeof s == "string" && s.startsWith(IllegalPrefix))
+    throw IllegalPrefix;
+}
+
+function wrapReplacer(REPLACER, IllegalPrefix) {
   if (REPLACER && !(REPLACER instanceof Function))
     throw new TypeError("replacer must be a function");
-  function prefixProblem(s) {
-    if (typeof s == "string" && s.startsWith(IllegalPrefix))
-      throw "try again with a different prefix.";
-  }
   return REPLACER ?
-    (k, v) => prefixProblem(v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : REPLACER(k, v) :
-    (k, v) => prefixProblem(v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : v;
+    (k, v) => prefixProblem(IllegalPrefix, v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : REPLACER(k, v) :
+    (k, v) => prefixProblem(IllegalPrefix, v) ?? v instanceof Function ? IllegalPrefix + v + IllegalPrefix : v;
+}
+
+function _pojoStringify(obj, replacer, indent, maxWidth, FUNKY) {
+  const replacerWrapper = wrapReplacer(replacer, FUNKY);
+  const txt = JSON.stringify(obj, replacerWrapper, indent)
+    .replaceAll(simpleNamesInQuotes, (_, n) => n + ":")
+    .replaceAll(new RegExp(`"${FUNKY}([\\s\\S]*?)${FUNKY}"`, "g"),
+      (_, q) => q.replaceAll("\\\\", "\\"));
+  return _maxWidth(txt, indent, maxWidth);
 }
 
 const simpleNamesInQuotes = /"([\p{ID_Start}_$][\p{ID_Continue}$]*)":/gu;
 export function pojoStringify(obj, replacer, indent, maxWidth) {
   if (typeof indent == "number")
     indent = " ".repeat(indent);
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 10; i++)
     try {
-      const FUNKY = "FUNKY" + Math.random().toString(36).slice(2);
-      const replacerWrapper = wrapReplacer(replacer, FUNKY);
-      const txt = JSON.stringify(obj, replacerWrapper, indent)
-        .replaceAll(simpleNamesInQuotes, (_, n) => n + ":")
-        .replaceAll(new RegExp(`"${FUNKY}([\\s\\S]*?)${FUNKY}"`, "g"),
-          (_, q) => q.replaceAll("\\\\", "\\"));
-      return _maxWidth(txt, indent, maxWidth);
+      return _pojoStringify(obj, replacer, indent, maxWidth, "FUNKY" + Math.random().toString(36).slice(2));
     } catch (e) {
+      if (e !== IllegalPrefix) throw e;
       //the FUNKY prefix is not unique enough
     }
-  }
 }
