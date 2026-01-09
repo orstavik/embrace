@@ -10,7 +10,7 @@ function pathFunction(start) {
   }
   for (let n = start; !(n instanceof Document || n instanceof DocumentFragment); n = n.parentNode)
     res.unshift([...n.parentNode.childNodes].indexOf(n));
-  return JSON.stringify(res);
+  return res;
 }
 
 function findEndComment(start) {
@@ -52,8 +52,7 @@ function* findDollarDots(node) {
 function compileTemplateNode({ start, id, end }) {
   const path = pathFunction(start);
   if (!end)
-    return { path, hydra: "$ => `" + start.nodeValue + "`", };
-
+    return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
   if (id)
     return { id, path };
 
@@ -66,7 +65,7 @@ function compileTemplateNode({ start, id, end }) {
     innerHydras.push(compileTemplateNode(inner));
 
   const templateString = templEl.innerHTML;
-  const hydra = `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`;
+  const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
   id = "_" + Math.random().toString(36).slice(2);
   start.nodeValue = ":: " + id;
 
@@ -87,19 +86,14 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-function makeTemplateScript({ path, hydra, id, innerHydras, templateString }) {
-  let inner = innerHydras.map(({ id, path, hydra }) => id ? `{ path: ${path}, id: "${id}" }` : `{ path: ${path}, hydra: ${hydra} }`);
-  inner = inner.length == 1 ? "[" + inner[0] + "]" :
-    "[\n    " + inner.join(",\n    ") + "\n  ]";
+import { pojoStringify } from "./stringify.js";
+function makeTemplateScript(template) {
+  const obj = {
+    ...template,
+    innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
+  };
   const script = document.createElement('script');
-  script.textContent = `"use strict";
-(window.dollarDots ??= {}).${id} = {
-  id: "${id}",
-  path: ${path},
-  hydra: ${hydra},
-  innerHydras: ${inner},
-  templateString: ${JSON.stringify(templateString)}
-}`;
+  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${pojoStringify(obj, null, 2, 120)};`;
   return script;
 }
 
