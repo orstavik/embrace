@@ -1,5 +1,6 @@
 function _maxWidth(txt, indent, maxWidth) {
-  const R = new RegExp(`((\\n(?:${indent})+)(?:"(?:(?:[^"\\\\]|\\\\.)*)":\\s)?)([\\[{][\\s\\S]*?\\2[\\]}])`, "g");
+  // const R = new RegExp(`((\\n(?:${indent})+)(?:"(?:(?:[^"\\\\]|\\\\.)*)":\\s)?)([\\[{][\\s\\S]*?\\2[\\]}])`, "g");
+  const R = new RegExp(`((\\n(?:${indent})+)[\\s\\S]*?)([\\[{]\\n[\\s\\S]*?\\2[\\]}])`, "g");
   const R2 = new RegExp(`\\n(${indent}*)`, "g");
   let m;
   while (m = R.exec(txt)) {
@@ -33,24 +34,36 @@ export function stringifyPlus(obj, replacer, indent, indentLevels) {
   return res.replace(RX, "");
 }
 
-const wrapReplacer = (REPLACER, randomKey) => {
+const wrapReplacer = (REPLACER, Prefix) => {
   if (REPLACER && !(REPLACER instanceof Function))
     throw new TypeError("replacer must be a function");
+  function prefixProblem(s) {
+    if (typeof s == "string" && s.startsWith(Prefix))
+      throw "try again with a different prefix.";
+  }
   return REPLACER ?
-    (k, v) => v instanceof Function ? randomKey + v + randomKey : REPLACER(k, v) :
-    (k, v) => v instanceof Function ? randomKey + v + randomKey : v;
+    (k, v) => prefixProblem(v) ?? v instanceof Function ? Prefix + v + Prefix : REPLACER(k, v) :
+    (k, v) => prefixProblem(v) ?? v instanceof Function ? Prefix + v + Prefix : v;
 }
 
 const doubleQuote = /"((?:[^"\\]|\\.)*)"(:)?/g;
+const doubleQuote2 = /"([a-zA-Z_][a-zA-Z0-9_]*)":/g;
 export function pojoStringify(obj, replacer, indent, maxWidth) {
-  const KEY = "__funcyBis__";
-  const replacerWrapper = wrapReplacer(replacer, KEY);
-  const res = stringifyMaxWidth(obj, replacerWrapper, indent, maxWidth);
-  const res2 = res.replaceAll(doubleQuote, (all, q, c) => {
-    return c ? q + c :
-      !q.startsWith(KEY) ? all :
-        q.slice(KEY.length, -KEY.length).replaceAll("\\\\", "\\");
-  });
-  return res2;
-  // const res3 = _maxWidth(res2, indent, maxWidth);
+  if (typeof indent == "number")
+    indent = " ".repeat(indent);
+  for (let i = 0; i < 10; i++) {
+    try {
+      const FUNKY = "FUNKY" + Math.random().toString(36).slice(2);
+      const replacerWrapper = wrapReplacer(replacer, FUNKY);
+      const txt = JSON.stringify(obj, replacerWrapper, indent);
+      // const one = txt.replaceAll(doubleQuote2, (all, q) => q + ":");
+      const res2 = txt.replaceAll(doubleQuote, (all, q, c) => {
+        return c ? q + c :
+          !q.startsWith(FUNKY) ? all :
+            q.slice(FUNKY.length, -FUNKY.length).replaceAll("\\\\", "\\");
+      });
+      return _maxWidth(res2, indent, maxWidth);
+    } catch (e) {
+    }
+  }
 }
