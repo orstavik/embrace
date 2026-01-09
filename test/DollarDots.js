@@ -86,7 +86,7 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-import POJO from "./stringify.js";
+import POJO from "./POJO.js";
 function makeTemplateScript(template) {
   const obj = {
     ...template,
