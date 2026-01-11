@@ -1,5 +1,3 @@
-import TOKENIZER from "./DollarDotTokenizer.js";
-
 //assume correct js inside the ${...} and <!--:: ... -->
 
 function pathFunction(start) {
@@ -31,7 +29,7 @@ function* findDollarDots(node) {
   for (let node; node = traverser.nextNode();) {
     const txt = node.nodeValue?.trim();
     if (node.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
-      const id = TOKENIZER.readID(txt);
+      const id = txt.match(/^::\s+(id_[0-9a-f]{32})\s*$/i)?.[1];
       const end = findEndComment(node);
       if (!end) { //implicit close at endOf siblings
         end = document.createComment("::");

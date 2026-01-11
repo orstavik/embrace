@@ -39,5 +39,4 @@ function dollarDotReader(KEY, END) {
 export default {
   ifFor: dollarDotReader(/(if|for)\s*\(/, ")"),
   templateString: dollarDotReader(/\$\{/, "}"),
-  readID: txt => txt.match(/^::\s+(id_[0-9a-f]{32})\s*$/i)?.[1],
 };
