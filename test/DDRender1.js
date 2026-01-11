@@ -10,12 +10,12 @@ function render(state, start, end, Def) {
   const $ = Object.assign({}, state);
   const newNodes = [];
   Def.hydra($, function run() {
-    const { root, innerHydras } = getInstance(Def);
+    const { nodes, innerHydras } = getInstance(Def);
     for (let { node, hydra, Def } of innerHydras)
       Def ?
         render($, node, node.nextSibling, Def) :
         node.nodeValue = hydra($);
-    newNodes.push(...root.childNodes);
+    newNodes.push(...nodes);
   });
   replaceNodesBetween(start, end, ...newNodes);
 }

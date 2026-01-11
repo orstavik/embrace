@@ -25,7 +25,7 @@ export function getInstance(Def) {
   const root = Def.docFrag.cloneNode(true);
   const innerHydras = Def.innerHydras.map(({ Def, path, hydra }) =>
     ({ Def, hydra, node: resolvePath(root, path) }));
-  return { root, innerHydras };
+  return { nodes: root.childNodes, innerHydras };
 }
 
 export function findEndComment(start) {
