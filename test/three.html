@@ -1,35 +1,36 @@
 <div id="app">
-  <template>
-    <h2>List of Series</h2>
-    <ol>
-      <template for="serie of series">
+  <!--:: ;-->
+  <h2>List of Series</h2>
+  <ol>
+    <!--:: for([$.serie_i, $.serie] of $.series.entries()) -->
+    <li>
+      <h3>${$.serie.title} is the no. ${$.serie_i + 1} in your play list.</h3>
+      <ul>
+        <!--:: for([$.season_i, $.season] of $.serie.seasons.entries()) -->
         <li>
-          <h3>{{serie.title}} is the no. {{#serie}} in your play list.</h3>
-          <ul>
-            <template for="season of serie.seasons">
-              <li>
-                <h4>{{season.title}} is the no. {{#season}} in series {{serie.title}}.</h4>
-                <ol>
-                  <template for="episode of season.episodes">
-                    <li>episode #{{#episode}}: {{episode}} produced by {{producer}}.</li>
-                  </template>
-                </ol>
-              </li>
-            </template>
-          </ul>
+          <h4>${$.season.title} is the no. ${$.season_i + 1} in series ${$.serie.title}.</h4>
+          <ol>
+            <!--:: for([$.episode_i, $.episode] of $.season.episodes.entries()) -->
+            <li>episode #${$.episode_i + 1}: ${$.episode} produced by ${$.producer}.</li>
+            <!--::-->
+          </ol>
         </li>
-      </template>
-    </ol>
-    <div>Number of entries in the series: {{Object.entries(series).length}}</div>
-    <div>Number of entries of the season in the first series: {{Object.values(series)[0].seasons.length}}</div>
-  </template>
+        <!--::-->
+      </ul>
+    </li>
+    <!--::-->
+  </ol>
+  <div>Number of entries in the series: ${Object.entries($.series).length}</div>
+  <div>Number of entries of the season in the first series: ${Object.values($.series)[0].seasons.length}</div>
+  <!--::-->
 </div>
 
+<script type="module" id="DollarDotsCompile">
+  import { compile } from "./DDCompile.js";
+  compile(document.getElementById("app"), document.getElementById("DollarDotsCompile"), "./DD.js");
+</script>
 <script type="module">
-  import { embrace } from "../src/v25x.js";
-  async function main() {
-    const data = await (await fetch("SerSeaEpi.json")).json();
-    embrace(document.getElementById("app"), data);
-  }
-  main();
+  import { renderUnder } from "./DDRender1.js";
+  const data = await (await fetch("SerSeaEpi.json")).json();
+  renderUnder(document.getElementById("app"), data);
 </script>
