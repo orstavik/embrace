@@ -2,15 +2,15 @@
 import POJO from "./POJO.js";
 import { findEndComment, register } from "./DD.js";
 
-let myScript;
-function getScriptSingleton(path) {
-  if (myScript)
-    return myScript;
-  myScript = document.createElement('script');
-  myScript.type = "module";
-  document.head.appendChild(myScript);//script doesn't run as it has no code yet.
-  myScript.textContent = `import { register } from "${path}";\n\n`;
-  return myScript;
+const MotherScripts = new WeakSet();
+function setupMotherScript(motherScript, path) {
+  if (MotherScripts.has(motherScript))
+    return motherScript;
+  MotherScripts.add(motherScript);
+  motherScript.type = "module";
+  motherScript.id = "DollarDotsDefinition";
+  motherScript.textContent = `import { register } from "${path}";\n\n`;
+  return motherScript;
 }
 
 function* findDollarDots(node) {
@@ -82,8 +82,12 @@ function _updateAndRegisterScript(motherScript, template) {
   motherScript.textContent += `register(${POJO.stringify(template, null, 2, 120)});\n\n`;
 }
 
-export function compile(rootNode, path) {
-  const script = getScriptSingleton(path);
+export function compile(rootNode, motherScript, DollarDotsPath) {
+  if (!(rootNode instanceof Node))
+    throw new Error("rootNode must be a DOM node");
+  if (!(motherScript instanceof HTMLScriptElement))
+    throw new Error("motherScript must be a <script> element");
+  const script = setupMotherScript(motherScript, DollarDotsPath);
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
       _compile(n, script);
