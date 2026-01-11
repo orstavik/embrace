@@ -33,7 +33,7 @@ function _compile({ start, id, end }, motherScript) {
   if (!end)
     return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
   if (id)
-    return { id, path };
+    return { path, id };
 
   const templEl = document.createElement("template");
   while (start.nextSibling != end)
@@ -48,7 +48,7 @@ function _compile({ start, id, end }, motherScript) {
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;
 
-  const res = { id, path, hydra, templateString, innerHydras };
+  const res = { path, id, hydra, templateString, innerHydras };
   _updateAndRegisterScript(motherScript, res);
   return res;
 }
