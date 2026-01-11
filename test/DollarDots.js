@@ -1,4 +1,5 @@
 //assume correct js inside the ${...} and <!--:: ... -->
+import POJO from "./POJO.js";
 
 function pathFunction(start) {
   const res = [];
@@ -10,6 +11,47 @@ function pathFunction(start) {
     res.unshift([...n.parentNode.childNodes].indexOf(n));
   return res;
 }
+
+function compileTemplateNode({ start, id, end }) {
+  const path = pathFunction(start);
+  if (!end)
+    return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
+  if (id)
+    return { id, path };
+
+  const templEl = document.createElement("template");
+  while (start.nextSibling != end)
+    templEl.content.append(start.nextSibling);
+
+  const innerHydras = [];
+  for (let inner of findDollarDots(templEl.content))
+    innerHydras.push(compileTemplateNode(inner));
+
+  const templateString = templEl.innerHTML;
+  const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
+  id = "id_" + crypto.randomUUID().replace(/-/g, "");
+  start.nodeValue = ":: " + id;
+
+  return {
+    id,
+    path,
+    hydra,
+    templateString,
+    innerHydras,
+  };
+}
+
+function makeTemplateScript(template) {
+  const obj = {
+    ...template,
+    innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
+  };
+  const script = document.createElement('script');
+  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${POJO.stringify(obj, null, 2, 120)};`;
+  return script;
+}
+
+
 
 function findEndComment(start) {
   for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
@@ -47,52 +89,12 @@ function* findDollarDots(node) {
   }
 }
 
-function compileTemplateNode({ start, id, end }) {
-  const path = pathFunction(start);
-  if (!end)
-    return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
-  if (id)
-    return { id, path };
-
-  const templEl = document.createElement("template");
-  while (start.nextSibling != end)
-    templEl.content.append(start.nextSibling);
-
-  const innerHydras = [];
-  for (let inner of findDollarDots(templEl.content))
-    innerHydras.push(compileTemplateNode(inner));
-
-  const templateString = templEl.innerHTML;
-  const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
-  id = "id_" + crypto.randomUUID().replace(/-/g, "");
-  start.nodeValue = ":: " + id;
-
-  return {
-    id,
-    path,
-    hydra,
-    templateString,
-    innerHydras,
-  };
-}
-
 function* newlyCompiledTemplates(template) {
   if (template.id && template.innerHydras) {
     yield template;
     for (let inner of template.innerHydras)
       yield* newlyCompiledTemplates(inner);
   }
-}
-
-import POJO from "./POJO.js";
-function makeTemplateScript(template) {
-  const obj = {
-    ...template,
-    innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
-  };
-  const script = document.createElement('script');
-  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${POJO.stringify(obj, null, 2, 120)};`;
-  return script;
 }
 
 import { RenderOne } from "./DDRenderOne.js";
