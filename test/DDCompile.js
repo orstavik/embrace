@@ -1,0 +1,90 @@
+//assume correct js inside the ${...} and <!--:: ... -->
+import POJO from "./POJO.js";
+import { findEndComment, register } from "./DD.js";
+
+let myScript;
+function getScriptSingleton(path) {
+  if (myScript)
+    return myScript;
+  myScript = document.createElement('script');
+  myScript.type = "module";
+  document.head.appendChild(myScript);//script doesn't run as it has no code yet.
+  myScript.textContent = `import { register } from "${path}";\n\n`;
+  return myScript;
+}
+
+function* findDollarDots(node) {
+  const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL, null, false);
+  for (let node; node = traverser.nextNode();) {
+    const txt = node.nodeValue?.trim();
+    if (node.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
+      const id = txt.match(/^::\s+(id_[0-9a-f]{32})\s*$/i)?.[1];
+      const end = findEndComment(node);
+      if (!end) { //implicit close at endOf siblings
+        end = document.createComment("::");
+        node.parentNode.append(end);
+      }
+      const templ = { start: node, end, id };
+      traverser.currentNode = templ.end;
+      yield templ;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      for (let attr of node.attributes)
+        if (attr.value.indexOf("${") >= 0)
+          yield { start: attr };
+    } else if (txt.indexOf("${") >= 0)
+      yield { start: node };
+  }
+}
+
+function pathFunction(start) {
+  const res = [];
+  if (start instanceof Attr) {
+    res.push(start.name);
+    start = start.ownerElement;
+  }
+  for (let n = start; !(n instanceof Document || n instanceof DocumentFragment); n = n.parentNode)
+    res.unshift([...n.parentNode.childNodes].indexOf(n));
+  return res;
+}
+
+//_compileTemplateNode is dirty!
+//1. it runs recursively, so innerTemplates are discovered.
+//2. each template that is compiled is *both* registered and written to the motherScript.
+
+function _compile({ start, id, end }, motherScript) {
+  const path = pathFunction(start);
+  if (!end)
+    return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
+  if (id)
+    return { id, path };
+
+  const templEl = document.createElement("template");
+  while (start.nextSibling != end)
+    templEl.content.append(start.nextSibling);
+
+  const innerHydras = [];
+  for (let inner of findDollarDots(templEl.content))
+    innerHydras.push(_compile(inner, motherScript));
+
+  const templateString = templEl.innerHTML;
+  const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
+  id = "id_" + crypto.randomUUID().replace(/-/g, "");
+  start.nodeValue = ":: " + id;
+
+  const res = { id, path, hydra, templateString, innerHydras };
+  _updateAndRegisterScript(motherScript, res);
+  return res;
+}
+
+function _updateAndRegisterScript(motherScript, template) {
+  template.innerHydras = template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra }));
+  register(template);
+  motherScript.textContent += `register(${POJO.stringify(template, null, 2, 120)});\n\n`;
+}
+
+export function compile(rootNode, path) {
+  const script = getScriptSingleton(path);
+  for (let n of findDollarDots(rootNode))
+    if (n.end && !n.id)
+      _compile(n, script);
+}
