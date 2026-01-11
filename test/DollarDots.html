@@ -14,10 +14,9 @@
   import DollarDots from "./DollarDots.js";
   DollarDots.compile(document.body, document.getElementById("DollarDotsCompile"));
 </script>
+
 <script type="module">
   import DollarDots from "./DollarDots.js";
-
-  await new Promise(r => setTimeout(r, 100)); //todo hack
 
   const state = Object.freeze({
     sunshine: "sunny sunshine",
@@ -27,6 +26,10 @@
     bob: ["red", "green", "blue"],
     alice: ["red", "green", "blue"],
   });
+
+  //todo this needs to await the compile. How to ensure that this will run after the compile?
+  //todo the sequence should ensure this? but it will not if the Compile is slowed down by something else.
+  await new Promise(r => setTimeout(r, 100)); //todo hack
   for (let { start, id, end } of DollarDots.findRunnableTemplates(document.body))
     DollarDots.render(state, start, end, id);
 
