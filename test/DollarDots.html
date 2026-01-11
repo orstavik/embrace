@@ -10,16 +10,14 @@
 <!--::-->
 <h2>world</h2>
 
+<script type="module" id="DollarDotsCompile">
+  import DollarDots from "./DollarDots.js";
+  DollarDots.compile(document.body, document.getElementById("DollarDotsCompile"));
+</script>
 <script type="module">
-
   import DollarDots from "./DollarDots.js";
 
-  const root = document.body;
-  //todo, this will work if we register first, and then update the script later.
-  DollarDots.compile(root, "./DollarDots.js");
   await new Promise(r => setTimeout(r, 100)); //todo hack
-
-  const runnables = DollarDots.findRunnableTemplates(root);
 
   const state = Object.freeze({
     sunshine: "sunny sunshine",
@@ -29,7 +27,7 @@
     bob: ["red", "green", "blue"],
     alice: ["red", "green", "blue"],
   });
-  for (let { start, id, end } of runnables)
+  for (let { start, id, end } of DollarDots.findRunnableTemplates(document.body))
     DollarDots.render(state, start, end, id);
 
 </script>
