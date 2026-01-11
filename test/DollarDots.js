@@ -41,13 +41,15 @@ function compileTemplateNode({ start, id, end }) {
   };
 }
 
-function makeTemplateScript(template) {
+function updateAndRegisterScript(template) {
   const obj = {
     ...template,
     innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
   };
+  const res = POJO.stringify(obj, null, 2, 120);
   const script = document.createElement('script');
-  script.textContent = `"use strict";(window.dollarDots ??= {}).${template.id} = ${POJO.stringify(obj, null, 2, 120)};`;
+  script.type = "module";
+  script.textContent = `import DollarDots from "./DollarDots.js";\nDollarDots.register(${res});`;
   return script;
 }
 
@@ -106,7 +108,7 @@ function compile(rootNode) {
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
       for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
-        document.body.appendChild(makeTemplateScript(template));
+        document.body.appendChild(updateAndRegisterScript(template));
 }
 
 function findDollarDots2(root, runnable = true) {
@@ -121,6 +123,7 @@ function* findRunnableTemplates(root) {
       yield n;
 }
 
+window.dollarDots = {};
 function register(template) {
   window.dollarDots[template.id] = template;
 }

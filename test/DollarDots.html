@@ -15,7 +15,10 @@
   import DollarDots from "./DollarDots.js";
 
   const root = document.body;
-  DollarDots.compile(root);
+  //todo, this will work if we register first, and then update the script later.
+  DollarDots.compile(root, "./DollarDots.js");
+  await new Promise(r => setTimeout(r, 100)); //todo hack
+
   const runnables = DollarDots.findRunnableTemplates(root);
 
   const state = Object.freeze({
@@ -26,7 +29,6 @@
     bob: ["red", "green", "blue"],
     alice: ["red", "green", "blue"],
   });
-
   for (let { start, id, end } of runnables)
     DollarDots.render(state, start, end, window.dollarDots[id]);
 
