@@ -1,21 +1,14 @@
-import { getDefinition, findRunnableTemplates, resolvePath, makeDocFrag } from "./DD.js";
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
 
 function render(state, start, end, DollarDotsDef) {
   const __state = Object.assign({}, state);
   const newNodes = [];
   DollarDotsDef.hydra(__state, function run() {
-    //this resolution of templateString and nodes and Definitions of innerHydras should be done in the 
-    // getDefition() which should be getInstance()
-    const root = makeDocFrag(DollarDotsDef.templateString);
-    //path => node
-    //id => Definition
-    //hydra unchanged
-    for (let { path, id, hydra } of DollarDotsDef.innerHydras) {
-      const n = resolvePath(root, path);
-      id ?
-        render(__state, n, n.nextSibling, getDefinition(id)) :
+    const { root, innerHydras } = getInstance(DollarDotsDef.id);
+    for (let { node: n, Def, hydra } of innerHydras)
+      Def ?
+        render(__state, n, n.nextSibling, Def) :
         n.nodeValue = hydra(__state);
-    }
     newNodes.push(...root.childNodes);
   });
   while (start.nextSibling != end)

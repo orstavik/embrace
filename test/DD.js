@@ -2,7 +2,6 @@ window.dollarDots = {};
 
 export function register(template) {
   window.dollarDots[template.id] = template;
-  // window.dollarDots[template.id].template = makeDocFrag(template.templateString);
 }
 
 export function makeDocFrag(str) {
@@ -19,9 +18,16 @@ export const resolvePath = (root, path) => path.reduce((n, i) =>
   typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
 
 
-// export function getInstance(id) {
-//   return { ...window.dollarDots[id], template: window.dollarDots[id].template.cloneNode(true) };
-// }
+export function getInstance(id) {
+  const res = getDefinition(id);
+  const root = makeDocFrag(res.templateString);
+  const innerHydras = res.innerHydras.map(({ id, path, hydra }) => ({
+    id, path, hydra,
+    node: resolvePath(root, path),
+    Def: getDefinition(id),
+  }));
+  return { root, innerHydras };
+}
 
 export function findEndComment(start) {
   for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
