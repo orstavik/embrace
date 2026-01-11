@@ -53,6 +53,14 @@ function updateAndRegisterScript(template) {
   return script;
 }
 
+function compile(rootNode) {
+  for (let n of findDollarDots(rootNode))
+    if (n.end && !n.id)
+      for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
+        document.body.appendChild(updateAndRegisterScript(template));
+}
+
+
 
 
 function findEndComment(start) {
@@ -100,21 +108,8 @@ function* newlyCompiledTemplates(template) {
 }
 
 import { RenderOne } from "./DDRenderOne.js";
-function render(state, start, end, DollarDotsDef) {
-  return RenderOne(state, start, end, DollarDotsDef);
-}
-
-function compile(rootNode) {
-  for (let n of findDollarDots(rootNode))
-    if (n.end && !n.id)
-      for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
-        document.body.appendChild(updateAndRegisterScript(template));
-}
-
-function findDollarDots2(root, runnable = true) {
-  return [...findDollarDots(root)]
-    .map(n => ({ ...n, Def: window.dollarDots[n.id] }))
-    .filter(n => runnable ^ !n.id);
+function render(state, start, end, id) {
+  return RenderOne(state, start, end, window.dollarDots[id]);
 }
 
 function* findRunnableTemplates(root) {
@@ -130,7 +125,6 @@ function register(template) {
 export default {
   render,
   compile,
-  findDollarDots: findDollarDots2,
   findRunnableTemplates,
   register,
 };
