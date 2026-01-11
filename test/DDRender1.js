@@ -6,15 +6,15 @@ function replaceNodesBetween(start, end, ...nodes) {
   start.after(...nodes);
 }
 
-function render(state, start, end, DollarDotsDef) {
-  const __state = Object.assign({}, state);
+function render(state, start, end, Def) {
+  const $ = Object.assign({}, state);
   const newNodes = [];
-  DollarDotsDef.hydra(__state, function run() {
-    const { root, innerHydras } = getInstance(DollarDotsDef.id);
+  Def.hydra($, function run() {
+    const { root, innerHydras } = getInstance(Def);
     for (let { node, hydra, Def } of innerHydras)
       Def ?
-        render(__state, node, node.nextSibling, Def) :
-        node.nodeValue = hydra(__state);
+        render($, node, node.nextSibling, Def) :
+        node.nodeValue = hydra($);
     newNodes.push(...root.childNodes);
   });
   replaceNodesBetween(start, end, ...newNodes);

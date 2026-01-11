@@ -2,6 +2,8 @@ window.dollarDots = {};
 
 export function register(template) {
   window.dollarDots[template.id] = template;
+  //todo we should not be able to register a template that has a broken reference to an inner Def..
+  //todo that meanst that it is ok to put the Def in the register here, not 
 }
 
 export function makeDocFrag(str) {
@@ -18,11 +20,10 @@ export const resolvePath = (root, path) => path.reduce((n, i) =>
   typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
 
 
-export function getInstance(id) {
-  const res = getDefinition(id);
-  const root = makeDocFrag(res.templateString);
-  const innerHydras = res.innerHydras.map(({ id, path, hydra }) => ({
-    id, path, hydra,
+export function getInstance(Def) {
+  const root = makeDocFrag(Def.templateString);
+  const innerHydras = Def.innerHydras.map(({ id, path, hydra }) => ({
+    hydra,
     node: resolvePath(root, path),
     Def: getDefinition(id),
   }));
