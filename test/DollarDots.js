@@ -98,28 +98,36 @@ function* newlyCompiledTemplates(template) {
 }
 
 import { RenderOne } from "./DDRenderOne.js";
-export class DollarDots {
-
-  static render(state, start, end, DollarDotsDef) {
-    return RenderOne(state, start, end, DollarDotsDef);
-  }
-
-  static compile(rootNode) {
-    for (let n of findDollarDots(rootNode))
-      if (n.end && !n.id)
-        for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
-          document.body.appendChild(makeTemplateScript(template));
-  }
-
-  static findDollarDots(root, runnable = true) {
-    return [...findDollarDots(root)]
-      .map(n => ({ ...n, Def: window.dollarDots[n.id] }))
-      .filter(n => runnable ^ !n.id);
-  }
-
-  static * findRunnableTemplates(root) {
-    for (let n of findDollarDots(root))
-      if (n.id)   //todo here we can check that the id exists in window.dollarDots.
-        yield n;
-  }
+function render(state, start, end, DollarDotsDef) {
+  return RenderOne(state, start, end, DollarDotsDef);
 }
+
+function compile(rootNode) {
+  for (let n of findDollarDots(rootNode))
+    if (n.end && !n.id)
+      for (let template of newlyCompiledTemplates(compileTemplateNode(n)))
+        document.body.appendChild(makeTemplateScript(template));
+}
+
+function findDollarDots2(root, runnable = true) {
+  return [...findDollarDots(root)]
+    .map(n => ({ ...n, Def: window.dollarDots[n.id] }))
+    .filter(n => runnable ^ !n.id);
+}
+
+function* findRunnableTemplates(root) {
+  for (let n of findDollarDots(root))
+    if (n.id)   //todo here we can check that the id exists in window.dollarDots.
+      yield n;
+}
+
+function register(template) {
+  window.dollarDots[template.id] = template;
+}
+export default {
+  render,
+  compile,
+  findDollarDots: findDollarDots2,
+  findRunnableTemplates,
+  register,
+};
