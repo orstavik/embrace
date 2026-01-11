@@ -107,7 +107,7 @@ function* newlyCompiledTemplates(template) {
   }
 }
 
-import { RenderOne } from "./DDRenderOne.js";
+import { RenderOne } from "./DDRender1.js";
 function render(state, start, end, id) {
   return RenderOne(state, start, end, window.dollarDots[id]);
 }

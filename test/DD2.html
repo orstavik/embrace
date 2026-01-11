@@ -16,7 +16,7 @@
 </script>
 
 <script type="module">
-  import { render, findRunnableTemplates } from "./DDRender.js";
+  import { renderUnder } from "./DDRender1.js";
 
   const state = Object.freeze({
     sunshine: "sunny sunshine",
@@ -27,10 +27,6 @@
     alice: ["red", "green", "blue"],
   });
 
-  //todo this needs to await the compile. How to ensure that this will run after the compile?
-  //todo the sequence should ensure this? but it will not if the Compile is slowed down by something else.
-  await new Promise(r => setTimeout(r, 100)); //todo hack
-  for (let { start, id, end } of findRunnableTemplates(document.body))
-    render(state, start, end, id);
+  renderUnder(document.body, state);
 
 </script>

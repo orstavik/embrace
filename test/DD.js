@@ -2,11 +2,26 @@ window.dollarDots = {};
 
 export function register(template) {
   window.dollarDots[template.id] = template;
+  // window.dollarDots[template.id].template = makeDocFrag(template.templateString);
+}
+
+export function makeDocFrag(str) {
+  const tmp = document.createElement("template");
+  tmp.innerHTML = str;
+  return tmp.content.cloneNode(true);
 }
 
 export function getDefinition(id) {
   return window.dollarDots[id];
 }
+
+export const resolvePath = (root, path) => path.reduce((n, i) =>
+  typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
+
+
+// export function getInstance(id) {
+//   return { ...window.dollarDots[id], template: window.dollarDots[id].template.cloneNode(true) };
+// }
 
 export function findEndComment(start) {
   for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
