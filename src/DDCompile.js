@@ -55,8 +55,8 @@ function _compile({ start, id, end }, motherScript) {
 
 function _updateAndRegisterScript(motherScript, template) {
   template.innerHydras = template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra }));
-  register(template);
   motherScript.textContent += `register(${POJO.stringify(template, null, 2, 120)});\n\n`;
+  register(template);
 }
 
 export function compile(rootNode, motherScript, DollarDotsPath) {

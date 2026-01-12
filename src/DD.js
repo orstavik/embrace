@@ -1,10 +1,10 @@
-window.dollarDots = {};
+const dollarDots = {};
 
 const resolvePath = (root, path) => path.reduce((n, i) =>
   typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
 
 export function register(template) {
-  window.dollarDots[template.id] = template;
+  dollarDots[template.id] = template;
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -18,7 +18,7 @@ export function register(template) {
 }
 
 export function getDefinition(id) {
-  return window.dollarDots[id];
+  return dollarDots[id];
 }
 
 export function getInstance(Def) {
