@@ -1,23 +1,15 @@
 import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
 
 class ReusableCtxs {
-  constructor(oldNodes = [], instances = new Map()) {
+  constructor(oldNodes = []) {
     this.oldNodes = oldNodes;
-    this.instances = instances;
     this.newNodes = [];
     this.removables = [];
   }
 
   flip() {
-    return new ReusableCtxs(this.newNodes, this.instances);
+    return new ReusableCtxs(this.newNodes);
   }
-
-  // getInstance(Def) {
-  //   let instance = this.instances.get(Def);
-  //   if (!instance)
-  //     this.instances.set(Def, instance = getInstance(Def));
-  //   return instance;
-  // }
 
   tryToReuse(node) {
     const reusable = this.oldNodes.findIndex(old => old.isEqualNode(node));
@@ -50,12 +42,14 @@ function render(state, start, end, Def, rootCtx) {
         node.nodeValue = hydra($);
     for (let n of nodes)
       newNodes.push(rootCtx.tryToReuse(n) ?? n);
+    //todo if tryToReuse is successful, then we can reuse the getInstance(). 
+    //But then we need to remove everything between startEnd pairs.
   });
-  if (!newNodes.length) return;
   rootCtx.addNewNodes(newNodes);
   start.after(...newNodes);
-  for (let n = newNodes.at(-1).nextSibling; n != end; n = n.nextSibling)
-    rootCtx.mightBeUnused(n);
+  if (newNodes.length)
+    for (let n = newNodes.at(-1).nextSibling; n != end; n = n.nextSibling)
+      rootCtx.mightBeUnused(n);
 }
 
 const rootToCtx = new WeakMap();
