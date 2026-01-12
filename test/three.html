@@ -26,11 +26,11 @@
 </div>
 
 <script type="module" id="DollarDotsCompile">
-  import { compile } from "./DDCompile.js";
-  compile(document.getElementById("app"), document.getElementById("DollarDotsCompile"), "./DD.js");
+  import { compile } from "/src/DDCompile.js";
+  compile(document.getElementById("app"), document.getElementById("DollarDotsCompile"), "/src/DD.js");
 </script>
 <script type="module">
-  import { renderUnder } from "./DDRender1.js";
+  import { renderUnder } from "/src/DDRender1.js";
   const data = await (await fetch("SerSeaEpi.json")).json();
   renderUnder(document.getElementById("app"), data);
 </script>
