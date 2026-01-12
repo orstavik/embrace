@@ -14,4 +14,8 @@
 <script type="module">
   import { renderUnder } from "/src/DDRender1.js";
   renderUnder(document.getElementById("app"), { a: "one", b: "two" });
+
+  setTimeout(_ => {
+    renderUnder(document.getElementById("app"), { a: "three", b: "four" });
+  }, 2000);
 </script>

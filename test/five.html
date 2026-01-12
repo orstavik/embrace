@@ -31,14 +31,12 @@
 </script>
 <script type="module">
   import { renderUnder } from "/src/DDRender1.js";
-  async function main() {
-    const data = await (await fetch("SerSeaEpi2.json")).json();
-    renderUnder(document.getElementById("app"), data);
-    setTimeout(_ => {
-      const data2 = { ...data };
-      data2.series = data2.series.reverse();
-      renderUnder(document.getElementById("app"), data2);
-    }, 5000);
-  }
-  main();
+
+  const data = await (await fetch("SerSeaEpi2.json")).json();
+  renderUnder(document.getElementById("app"), data);
+  setTimeout(_ => {
+    const data2 = { ...data };
+    data2.series = data2.series.reverse();
+    renderUnder(document.getElementById("app"), data2);
+  }, 5000);
 </script>
