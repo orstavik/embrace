@@ -12,12 +12,12 @@ class ReusableCtxs {
     return new ReusableCtxs(this.newNodes, this.instances);
   }
 
-  getInstance(Def) {
-    let instance = this.instances.get(Def);
-    if (!instance)
-      this.instances.set(Def, instance = getInstance(Def));
-    return instance;
-  }
+  // getInstance(Def) {
+  //   let instance = this.instances.get(Def);
+  //   if (!instance)
+  //     this.instances.set(Def, instance = getInstance(Def));
+  //   return instance;
+  // }
 
   tryToReuse(node) {
     const reusable = this.oldNodes.findIndex(old => old.isEqualNode(node));
