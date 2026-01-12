@@ -1,6 +1,6 @@
 <div id="app">
-  <!--:: ; -->
-  <h2>List of Series ("series" is an array? ${$.series instanceof Array})</h2>
+  <!--:: ;-->
+  <h2>List of Series</h2>
   <ol>
     <!--:: for([$.serie_i, $.serie] of $.series.entries()) -->
     <li>
@@ -9,30 +9,31 @@
         <!--:: for([$.season_i, $.season] of $.serie.seasons.entries()) -->
         <li>
           <h4>${$.season.title} is the no. ${$.season_i + 1} in series ${$.serie.title}.</h4>
-          <!--:: if(($.season_i + 1) % 2) -->
           <ol>
             <!--:: for([$.episode_i, $.episode] of $.season.episodes.entries()) -->
-            <!-- {{JSON.stringify(season, null, 2)}} -->
             <li>episode #${$.episode_i + 1}: ${$.episode} produced by ${$.producer}.</li>
             <!--::-->
           </ol>
-          <!--::-->
         </li>
         <!--::-->
       </ul>
     </li>
     <!--::-->
   </ol>
+  <div>Number of entries in the series: ${Object.entries($.series).length}</div>
+  <div>Number of entries of the season in the first series: ${Object.values($.series)[0].seasons.length}</div>
   <!--::-->
 </div>
+
 <script type="module" id="DollarDotsCompile">
   import { compile } from "/src/DDCompile.js";
   compile(document.getElementById("app"), document.getElementById("DollarDotsCompile"), "/src/DD.js");
 </script>
+
 <script type="module">
   import { renderUnder } from "/src/DDRender2.js";
 
-  const data = await (await fetch("SerSeaEpi2.json")).json();
+  const data = await (await fetch("SerSeaEpi.json")).json();
   renderUnder(document.getElementById("app"), data);
   setTimeout(_ => {
     const data2 = { ...data };
