@@ -2,32 +2,35 @@ import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 
 class ReusableCtxs {
+  #oldNodes;
+  #newNodes;
+  #removables;
   constructor(oldNodes = []) {
-    this.oldNodes = oldNodes;
-    this.newNodes = [];
-    this.removables = [];
+    this.#oldNodes = oldNodes;
+    this.#newNodes = [];
+    this.#removables = [];
   }
 
   flip() {
-    return new ReusableCtxs(this.newNodes);
+    return new ReusableCtxs(this.#newNodes);
   }
 
   tryToReuse(node) {
-    const reusable = this.oldNodes.findIndex(old => old.isEqualNode(node));
-    return reusable < 0 ? undefined : this.oldNodes.splice(reusable, 1)[0];
+    const reusable = this.#oldNodes.findIndex(old => old.isEqualNode(node));
+    return reusable < 0 ? node : this.#oldNodes.splice(reusable, 1)[0];
   }
 
   mightBeUnused(...nodes) {
-    this.removables.push(...nodes);
+    this.#removables.push(...nodes);
   }
 
   addNewNodes(nodes) {
-    this.newNodes.push(...nodes);
+    this.#newNodes.push(...nodes);
   }
 
   cleanUp() {
-    for (let n of this.removables)
-      if (!this.newNodes.includes(n))
+    for (let n of this.#removables)
+      if (!this.#newNodes.includes(n))
         n.remove();
   }
 }
@@ -42,7 +45,7 @@ function render(state, start, end, Def, rootCtx) {
         render($, node, node.nextSibling, Def, rootCtx) :
         node.nodeValue = hydra($);
     for (let n of nodes)
-      newNodes.push(rootCtx.tryToReuse(n) ?? n);
+      newNodes.push(rootCtx.tryToReuse(n));
   });
   rootCtx.addNewNodes(newNodes);
   start.after(...newNodes);
