@@ -18,6 +18,7 @@ class ReusableCtxs {
   #newNodes = [];
   #removables = [];
   #newTopNodes = [];
+  #bob = new Set();
   constructor(oldNodes = []) {
     this.#oldNodes = oldNodes;
   }
@@ -38,13 +39,20 @@ class ReusableCtxs {
     this.#removables.push(...nodes);
   }
 
-  addNewNodes(nodes) {
+  addNewNodes(start, end, nodes) {
     nodes = nodes.map(n => this.#tryToReuse(n));
     this.#newNodes.push(...nodes);
+    this.#bob.add({ start, end, nodes });
     return nodes;
   }
 
   cleanUp() {
+    for (let { start, end, nodes: newNodes2 } of this.#bob) {
+      start.after(...newNodes2);
+      if (newNodes2.length)
+        for (let n = newNodes2.at(-1).nextSibling; n != end; n = n.nextSibling)
+          this.mightBeUnused(n);
+    }
     for (let n of this.#removables)
       if (!this.#newNodes.includes(n))
         n.remove();
@@ -62,11 +70,7 @@ function render(state, start, end, Def, rootCtx) {
         node.nodeValue = hydra($);
     newNodes.push(...nodes);
   });
-  const newNodes2 = rootCtx.addNewNodes(newNodes);
-  start.after(...newNodes2);
-  if (newNodes2.length)
-    for (let n = newNodes2.at(-1).nextSibling; n != end; n = n.nextSibling)
-      rootCtx.mightBeUnused(n);
+  rootCtx.addNewNodes(start, end, newNodes);
 }
 
 const rootToCtx = new WeakMap();
