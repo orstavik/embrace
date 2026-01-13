@@ -1,0 +1,86 @@
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
+import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
+
+//todo this first
+//1. we don't put in .after() until cleanup.
+//2. we store all the newNodes in a map {start, [newNodes, end]}.
+//3. at cleanup, we iterate this map. I think in reverse()? but i am not sure we need that.
+//4. We then start.after(...newNodes); this will run all the register the tasks
+//5. then we run from newNodes.last => end. Here, we see if the node has been used elsewhere, if not, we .remove() it.
+
+//todo this second
+//6. this means that at cleanup time, we can run through the *newNodes* added, 
+// and match them against a much smaller set of oldNodesNotUsed, and then do a more complex replace.
+// this replace will a) only focus on elements, b) match elements based on tagName, c) then maybe do a JSON.stringify compare inside here.
+
+class ReusableCtxs {
+  #oldNodes;
+  #newNodes = [];
+  #removables = [];
+  #newTopNodes = [];
+  constructor(oldNodes = []) {
+    this.#oldNodes = oldNodes;
+  }
+
+  flip() {
+    return new ReusableCtxs(this.#newNodes);
+  }
+
+  #tryToReuse(node) {
+    const reusable = this.#oldNodes.findIndex(old => old.isEqualNode(node));
+    if (reusable >= 0)
+      return this.#oldNodes.splice(reusable, 1)[0];
+    this.#newTopNodes.push(node);
+    return node;
+  }
+
+  mightBeUnused(...nodes) {
+    this.#removables.push(...nodes);
+  }
+
+  addNewNodes(nodes) {
+    nodes = nodes.map(n => this.#tryToReuse(n));
+    this.#newNodes.push(...nodes);
+    return nodes;
+  }
+
+  cleanUp() {
+    for (let n of this.#removables)
+      if (!this.#newNodes.includes(n))
+        n.remove();
+  }
+}
+
+function render(state, start, end, Def, rootCtx) {
+  const $ = Object.assign({}, state);
+  const newNodes = [];
+  Def.hydra($, function run() {
+    const { nodes, innerHydras } = getInstance(Def);
+    for (let { node, hydra, Def } of innerHydras)
+      Def ?
+        render($, node, node.nextSibling, Def, rootCtx) :
+        node.nodeValue = hydra($);
+    newNodes.push(...nodes);
+  });
+  const newNodes2 = rootCtx.addNewNodes(newNodes);
+  start.after(...newNodes2);
+  if (newNodes2.length)
+    for (let n = newNodes2.at(-1).nextSibling; n != end; n = n.nextSibling)
+      rootCtx.mightBeUnused(n);
+}
+
+const rootToCtx = new WeakMap();
+function startUp(root) {
+  const ctx = rootToCtx.get(root)?.flip() ?? new ReusableCtxs();
+  rootToCtx.set(root, ctx);
+  return ctx;
+}
+
+export function renderUnder(root, state) {
+  const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
+  const rootCtx = startUp(root);
+  for (let { start, id, end } of findRunnableTemplates(root))
+    render(state, start, end, getDefinition(id), rootCtx);
+  rootCtx.cleanUp();
+  !root.contains(document.activeElement) && restoreFocus && restoreFocus();
+}
