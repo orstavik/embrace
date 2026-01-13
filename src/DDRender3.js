@@ -14,12 +14,13 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 // this replace will a) only focus on elements, b) match elements based on tagName, c) then maybe do a JSON.stringify compare inside here.
 
 class ReusableCtxs {
-  #oldNodes;
+  #reusables;
+  // #reused = new Set();
   #newNodes = [];
   #newTopNodes = [];
   #bob = new Set();
   constructor(oldNodes = []) {
-    this.#oldNodes = oldNodes;
+    this.#reusables = oldNodes;
   }
 
   flip() {
@@ -28,9 +29,9 @@ class ReusableCtxs {
 
   addNewNodes(start, end, nodes) {
     nodes = nodes.map(n => {
-      const reusable = this.#oldNodes.findIndex(old => old.isEqualNode(n));
+      const reusable = this.#reusables.findIndex(old => old.isEqualNode(n));
       if (reusable >= 0)
-        return this.#oldNodes.splice(reusable, 1)[0];
+        return this.#reusables.splice(reusable, 1)[0];
       this.#newTopNodes.push(n);
       return n;
     });
