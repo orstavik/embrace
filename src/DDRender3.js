@@ -14,17 +14,16 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 // this replace will a) only focus on elements, b) match elements based on tagName, c) then maybe do a JSON.stringify compare inside here.
 
 class ReusableCtxs {
-  #reusables;
+  #reusables = [];
   #reused = new Set();
   #created = new Set();
-  #newNodes;
   #bob = new Set();
-  constructor(oldNodes = []) {
-    this.#reusables = oldNodes;
-  }
 
-  flip() {
-    return new ReusableCtxs(this.#newNodes);
+  #reset(oldNodes) {
+    this.#reusables = oldNodes;
+    this.#created.clear();
+    this.#reused.clear();
+    this.#bob.clear();
   }
 
   addNewNodes(start, end, nodes) {
@@ -55,7 +54,7 @@ class ReusableCtxs {
     //todo we can still reuse the unused more here.
     for (let n of unused)
       n.remove();
-    this.#newNodes = newNodes;
+    this.#reset(newNodes);
   }
 }
 
@@ -75,8 +74,8 @@ function render(state, start, end, Def, rootCtx) {
 
 const rootToCtx = new WeakMap();
 function startUp(root) {
-  const ctx = rootToCtx.get(root)?.flip() ?? new ReusableCtxs();
-  rootToCtx.set(root, ctx);
+  let ctx = rootToCtx.get(root);
+  if (!ctx) rootToCtx.set(root, ctx = new ReusableCtxs());
   return ctx;
 }
 
