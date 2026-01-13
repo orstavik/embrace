@@ -3,7 +3,7 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 
 //todo this first
 //1. we don't put in .after() until cleanup.
-//2. we store all the newNodes in a map {start, [newNodes, end]}.
+//2. we store all the newNodes in a set {start,newNodes, end}.
 //3. at cleanup, we iterate this map. I think in reverse()? but i am not sure we need that.
 //4. We then start.after(...newNodes); this will run all the register the tasks
 //5. then we run from newNodes.last => end. Here, we see if the node has been used elsewhere, if not, we .remove() it.
@@ -16,7 +16,6 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 class ReusableCtxs {
   #oldNodes;
   #newNodes = [];
-  #removables = [];
   #newTopNodes = [];
   #bob = new Set();
   constructor(oldNodes = []) {
@@ -27,35 +26,30 @@ class ReusableCtxs {
     return new ReusableCtxs(this.#newNodes);
   }
 
-  #tryToReuse(node) {
-    const reusable = this.#oldNodes.findIndex(old => old.isEqualNode(node));
-    if (reusable >= 0)
-      return this.#oldNodes.splice(reusable, 1)[0];
-    this.#newTopNodes.push(node);
-    return node;
-  }
-
-  mightBeUnused(...nodes) {
-    this.#removables.push(...nodes);
-  }
-
   addNewNodes(start, end, nodes) {
-    nodes = nodes.map(n => this.#tryToReuse(n));
+    nodes = nodes.map(n => {
+      const reusable = this.#oldNodes.findIndex(old => old.isEqualNode(n));
+      if (reusable >= 0)
+        return this.#oldNodes.splice(reusable, 1)[0];
+      this.#newTopNodes.push(n);
+      return n;
+    });
     this.#newNodes.push(...nodes);
     this.#bob.add({ start, end, nodes });
-    return nodes;
   }
 
   cleanUp() {
-    for (let { start, end, nodes: newNodes2 } of this.#bob) {
-      start.after(...newNodes2);
-      if (newNodes2.length)
-        for (let n = newNodes2.at(-1).nextSibling; n != end; n = n.nextSibling)
-          this.mightBeUnused(n);
+    const unused = [];
+    for (let { start, end, nodes } of this.#bob) {
+      start.after(...nodes);
+      if (nodes.length)
+        for (let n = nodes.at(-1).nextSibling; n != end; n = n.nextSibling)
+          if (!this.#newNodes.includes(n))
+            unused.push(n);
     }
-    for (let n of this.#removables)
-      if (!this.#newNodes.includes(n))
-        n.remove();
+    //todo we can still reuse the unused more here.
+    for (let n of unused)
+      n.remove();
   }
 }
 
