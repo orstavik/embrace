@@ -15,9 +15,9 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 
 class ReusableCtxs {
   #reusables;
-  // #reused = new Set();
-  #newNodes = [];
-  #newTopNodes = [];
+  #reused = new Set();
+  #created = new Set();
+  #newNodes;
   #bob = new Set();
   constructor(oldNodes = []) {
     this.#reusables = oldNodes;
@@ -30,27 +30,32 @@ class ReusableCtxs {
   addNewNodes(start, end, nodes) {
     nodes = nodes.map(n => {
       const reusable = this.#reusables.findIndex(old => old.isEqualNode(n));
-      if (reusable >= 0)
+      if (reusable >= 0) {
+        this.#reused.add(n);
         return this.#reusables.splice(reusable, 1)[0];
-      this.#newTopNodes.push(n);
-      return n;
+      } else {
+        this.#created.add(n);
+        return n;
+      }
     });
-    this.#newNodes.push(...nodes);
     this.#bob.add({ start, end, nodes });
   }
 
   cleanUp() {
     const unused = [];
+    const newNodes = [];
     for (let { start, end, nodes } of this.#bob) {
       start.after(...nodes);
+      newNodes.push(...nodes);
       if (nodes.length)
         for (let n = nodes.at(-1).nextSibling; n != end; n = n.nextSibling)
-          if (!this.#newNodes.includes(n))
+          if (!this.#reused.has(n))
             unused.push(n);
     }
     //todo we can still reuse the unused more here.
     for (let n of unused)
       n.remove();
+    this.#newNodes = newNodes;
   }
 }
 
