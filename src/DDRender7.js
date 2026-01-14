@@ -11,12 +11,7 @@ function renderValues(state, Def, intro = "") {
   return { Def, value, intro, key: JSON.stringify(value) };
 }
 
-function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd, nodes) {
-  if (!bStart) {
-    const last = nodes.at(-1);
-    aStart.after(...nodes);
-    return last.nextSibling != aEnd ? removeables.push([last, aEnd]) : undefined;
-  }
+function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd) {
   if (aStart === bStart) //&& aEnd === bEnd
     return;
   //1. while the head of the list of nodes are the same, then we just spool
@@ -34,15 +29,16 @@ function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd, nodes) {
   //4. identical, but a was shorter than b, so we add nodes.
   if (a === aEnd) {
     a = a.previousSibling;
-    for (; b != bEnd; b = b.nextSibling) {
-      a.after(b);
-      a = b;
+    for (let t = a.previousSibling, next = b, nextNext; next != bEnd; next = nextNext) {
+      nextNext = next.nextSibling;
+      t.after(next);
+      t = next;
     }
     return;
   }
   //5. there are differences after the head of identicals. we just need to add all the b side nodes.
   let t;
-  for (t = a.previousSibling; b != bEnd; b = b.nextSibling, t = b)
+  for (t = a.previousSibling; b != bEnd; t = b, b = b.nextSibling)
     t.after(b);
   return removeables.push([t, aEnd]);
 }
@@ -63,10 +59,14 @@ function reuse(todo, reusables) {
     for (let nowTask of nowTasks) {
       const hasReusableNodeList = thisDefReusables[nowTask.key]?.length;
       if (hasReusableNodeList) {
+        //todo try to find a hasReusableNodeList that has the same .start as the nowTask?
         const reuseTask = thisDefReusables[nowTask.key].shift();
-        nowTask.nodes = reuseTask.nodes;
-        debugger
-        addNodesSmartly(removeables, nowTask.start, nowTask.end, reuseTask.start, reuseTask.end);
+        //move start/end from nowTask into reuseTask
+        reuseTask.start.nextSibling.before(nowTask.start);
+        reuseTask.end.previousSibling.after(nowTask.end);
+        reuseTask.start = nowTask.start;
+        reuseTask.end = nowTask.end;
+        //move complete
         (nextDefReusables[nowTask.key] ??= []).push(reuseTask);
       } else {
         remainingTasks.push(nowTask);
@@ -76,25 +76,28 @@ function reuse(todo, reusables) {
     const partialAndNewTemplates = Object.values(thisDefReusables).flat();
     while (partialAndNewTemplates.length < remainingTasks.length) {
       //todo here it looks like we can wrap the nodes with a start and end comment instead??
-      const instance = getInstance(topDef); 
-      instance.nodes = [...instance.nodes];
+      const instance = getInstance(topDef);
+      instance.start = document.createComment("DDRender7");
+      instance.end = document.createComment("DDRender7");
+      instance.nodes[0].before(instance.start);
+      instance.nodes[instance.nodes.length - 1].after(instance.end);
+      delete instance.nodes;
       partialAndNewTemplates.push(instance);
     }
 
     for (let i = 0; i < partialAndNewTemplates.length; i++) {
       const partialNew = partialAndNewTemplates[i];
       const nowTask = remainingTasks[i];
-      nowTask.nodes = partialNew.nodes;
-      addNodesSmartly(removeables, nowTask.start, nowTask.end, partialNew.start, partialNew.end, partialNew.nodes);
-      nowTask.innerHydras = partialNew.innerHydras.map((nDh, i) => ({ ...nDh, value: nowTask.value[i] }));
-      // delete nowTask.values;
+      addNodesSmartly(removeables, nowTask.start, nowTask.end, partialNew.start, partialNew.end);
+      nowTask.innerHydras = partialNew.innerHydras;
       (nextDefReusables[nowTask.key] ??= []).push(nowTask);
       for (let i = 0; i < nowTask.innerHydras.length; i++) {
+        const value = nowTask.value[i];
         const innerTask = nowTask.innerHydras[i];
         if (!innerTask.Def)
-          innerTask.node.nodeValue = innerTask.value;
+          innerTask.node.nodeValue = value;
         else {
-          todo.push({ ...innerTask, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(innerTask.value) });
+          todo.push({ ...innerTask, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(value) });
         }
       }
     }
