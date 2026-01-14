@@ -1,13 +1,6 @@
 import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 
-function getInstance2(Def) {
-  const instance = getInstance(Def);
-  instance.nodes = [...instance.nodes];
-  return instance;
-}
-
-//1. create a DefValuesPath tree for a Def+state
 function renderValues(state, Def, intro = "") {
   const $ = Object.assign({}, state);
   const value = [];
@@ -42,8 +35,11 @@ function reuse(todo, reusables) {
     }
 
     const partialAndNewTemplates = Object.values(thisDefReusables).flat();
-    while (partialAndNewTemplates.length < remainingTasks.length)
-      partialAndNewTemplates.push(getInstance2(topDef));
+    while (partialAndNewTemplates.length < remainingTasks.length) {
+      const instance = getInstance(topDef);
+      instance.nodes = [...instance.nodes];
+      partialAndNewTemplates.push(instance);
+    }
 
     for (let i = 0; i < partialAndNewTemplates.length; i++) {
       const partialNew = partialAndNewTemplates[i];
