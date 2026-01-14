@@ -1,8 +1,5 @@
 const dollarDots = {};
 
-const resolvePath = (root, path) => path.reduce((n, i) =>
-  typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
-
 export function register(template) {
   dollarDots[template.id] = template;
   const el = document.createElement("template");
@@ -20,6 +17,9 @@ export function register(template) {
 export function getDefinition(id) {
   return dollarDots[id];
 }
+
+const resolvePath = (root, path) => path.reduce((n, i) =>
+  typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
 
 export function getInstance(Def) {
   const root = Def.docFrag.cloneNode(true);

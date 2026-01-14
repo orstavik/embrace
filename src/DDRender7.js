@@ -43,6 +43,13 @@ function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd) {
   return removeables.push([t, aEnd]);
 }
 
+function swapStartEnd(reuseTask, nowTask) {
+  reuseTask.start.nextSibling.before(nowTask.start);
+  reuseTask.end.previousSibling.after(nowTask.end);
+  reuseTask.start = nowTask.start;
+  reuseTask.end = nowTask.end;
+}
+
 function reuse(todo, reusables) {
   const nextReusables = {};
   const removeables = [];
@@ -61,12 +68,7 @@ function reuse(todo, reusables) {
       if (hasReusableNodeList) {
         //todo try to find a hasReusableNodeList that has the same .start as the nowTask?
         const reuseTask = thisDefReusables[nowTask.key].shift();
-        //move start/end from nowTask into reuseTask
-        reuseTask.start.nextSibling.before(nowTask.start);
-        reuseTask.end.previousSibling.after(nowTask.end);
-        reuseTask.start = nowTask.start;
-        reuseTask.end = nowTask.end;
-        //move complete
+        swapStartEnd(reuseTask, nowTask);
         (nextDefReusables[nowTask.key] ??= []).push(reuseTask);
       } else {
         remainingTasks.push(nowTask);
