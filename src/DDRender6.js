@@ -10,12 +10,12 @@ function getInstance2(Def) {
 //1. create a DefValuesPath tree for a Def+state
 function renderValues(state, Def, intro = "") {
   const $ = Object.assign({}, state);
-  const values = [];
+  const value = [];
   Def.hydra($, function run() {
     for (let { Def: D2, hydra } of Def.innerHydras)
-      values.push(D2 ? renderValues($, D2, intro + "|" + Def.id) : hydra($));
+      value.push(D2 ? renderValues($, D2, intro + "|" + Def.id) : hydra($));
   });
-  return { Def, values, intro, key: JSON.stringify(values) };
+  return { Def, value, intro, key: JSON.stringify(value) };
 }
 
 function reuse(todo, reusables) {
@@ -49,16 +49,16 @@ function reuse(todo, reusables) {
       const partialNew = partialAndNewTemplates[i];
       const nowTask = remainingTasks[i];
       nowTask.nodes = partialNew.nodes;
-      nowTask.innerHydras = partialNew.innerHydras.map((nDh, i) => ({ ...nDh, value: nowTask.values[i] }));
+      nowTask.innerHydras = partialNew.innerHydras.map((nDh, i) => ({ ...nDh, value: nowTask.value[i] }));
       // delete nowTask.values;
       (nextDefReusables[nowTask.key] ??= []).push(nowTask);
       //todo here, we could actually get all the nodes between start and end..
       for (let i = 0; i < nowTask.innerHydras.length; i++) {
-        const { node, Def, value } = nowTask.innerHydras[i];
-        if (!Def)
-          node.nodeValue = value;
+        const innerTask = nowTask.innerHydras[i];
+        if (!innerTask.Def)
+          innerTask.node.nodeValue = innerTask.value;
         else {
-          todo.push({ Def, values: value, intro: nowTask.intro + "|" + Def.id });
+          todo.push({ ...innerTask, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(innerTask.value) });
         }
       }
     }
@@ -66,7 +66,7 @@ function reuse(todo, reusables) {
   return nextReusables;
 }
 
-function attachNewElements(tasks) {
+function addAndRemoveNodes(tasks) {
   const used = new Set();
   const maybeRemove = new Set();
   for (let task of tasks) {
@@ -88,21 +88,9 @@ let reusables = {};
 export function renderUnder(root, state) {
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
   const runnables = [...findRunnableTemplates(root)];
-  //1. we run just the data operations, in full. This produces a Tree of Def/values. We are now done with both $state and hydras. They are turned into list of values.
   const defValuesPath = runnables.map(t => renderValues(state, getDefinition(t.id)));
-  //todo check if there is no change since last.
-  //2. Merge defValuesPath with runnables to link the start/end anchor with the values.
   const defValuesPathWithStartEnd = defValuesPath.map((dvp, i) => ({ ...dvp, ...runnables[i] }));
   reusables = reuse(defValuesPathWithStartEnd, reusables);
-  //3. now all the nodes are mapped in the defValuesPathWithStartEnd.
-  //   we then update the DOM
-  attachNewElements(defValuesPathWithStartEnd);
+  addAndRemoveNodes(defValuesPathWithStartEnd);
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
-
-
-// const setDefNodes = (map, defKey, valuesKey, nodes) => 
-//   ((map[defKey] ??= {})[valuesKey] ??= []).push(nodes);
-// const readAndRemove = (map, defKey, valuesKey) => 
-//   map[defKey]?.[valuesKey]?.shift();
-
