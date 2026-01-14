@@ -44,8 +44,6 @@ function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd) {
 }
 
 function swapStartEnd(reuseTask, nowTask) {
-  if (reuseTask.start === nowTask.start)
-    return;
   reuseTask.start.nextSibling.before(nowTask.start);
   reuseTask.end.previousSibling.after(nowTask.end);
   reuseTask.start = nowTask.start;
@@ -59,19 +57,32 @@ function reuse(todo, reusables) {
     //extract the first topLevel task Def, that is a Def that is NEVER inside another Def.
     const topDef = todo.find(task => todo.every(t2 => !t2.intro.includes(task.Def.id))).Def;
     //get all the tasks with this DefType. We run all DefTypes in one go.
-    const nowTasks = todo.filter(({ Def }) => Def == topDef);
+    const nowTasks = todo.filter(({ Def }) => Def === topDef);
     todo = todo.filter(t => !nowTasks.includes(t));
 
     const thisDefReusables = reusables[topDef.id] ??= {};
     const nextDefReusables = nextReusables[topDef.id] = {};
-    const remainingTasks = [];
+    //1. do the superExact reusables where the .start and .key are both the same.
+    const remainingTasks2 = [];
     for (let nowTask of nowTasks) {
-      if (thisDefReusables[nowTask.key]?.length) {
-        const reuseTask = thisDefReusables[nowTask.key].shift();
+      const superExactReusables = thisDefReusables[nowTask.key];
+      const i = superExactReusables?.findIndex(reTask => reTask.start === nowTask.start);
+      if (i >= 0) {
+        (nextDefReusables[nowTask.key] ??= []).push(superExactReusables.splice(i, 1)[i]);
+      } else {
+        remainingTasks2.push(nowTask);
+      }
+    }
+    const remainingTasks = [];
+    //2. do the exact reusables where the content is the same, but the .start is different.
+    for (let nowTask of remainingTasks2) {
+      const exactReusables = thisDefReusables[nowTask.key];
+      if (!exactReusables?.length) {
+        remainingTasks.push(nowTask);
+      } else {
+        const reuseTask = exactReusables.pop();
         swapStartEnd(reuseTask, nowTask);
         (nextDefReusables[nowTask.key] ??= []).push(reuseTask);
-      } else {
-        remainingTasks.push(nowTask);
       }
     }
 
@@ -91,6 +102,8 @@ function reuse(todo, reusables) {
         if (!innerTask.Def)
           innerTask.node.nodeValue = value;
         else {
+          //todo what do we do with the value??
+          //todo and how do we split up the inner definitions of the reuse tasks?
           todo.push({ ...innerTask, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(value) });
         }
       }
