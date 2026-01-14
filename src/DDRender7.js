@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD7.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 
 function renderValues(state, Def, intro = "") {
@@ -74,16 +74,8 @@ function reuse(todo, reusables) {
     }
 
     const partialAndNewTemplates = Object.values(thisDefReusables).flat();
-    while (partialAndNewTemplates.length < remainingTasks.length) {
-      //todo here it looks like we can wrap the nodes with a start and end comment instead??
-      const instance = getInstance(topDef);
-      instance.start = document.createComment("DDRender7");
-      instance.end = document.createComment("DDRender7");
-      instance.nodes[0].before(instance.start);
-      instance.nodes[instance.nodes.length - 1].after(instance.end);
-      delete instance.nodes;
-      partialAndNewTemplates.push(instance);
-    }
+    while (partialAndNewTemplates.length < remainingTasks.length)
+      partialAndNewTemplates.push(getInstance(topDef));
 
     for (let i = 0; i < partialAndNewTemplates.length; i++) {
       const partialNew = partialAndNewTemplates[i];
