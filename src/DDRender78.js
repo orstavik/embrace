@@ -10,11 +10,13 @@ class ReuseMap {
 
   //deep remember. This is a point for optimization.
   remember(a) {
+    if (!(a instanceof Task))
+      throw new Error("a must be an instance of Task");
     const Def = a.Def;
     const values = a.values;
     this.put(Def, values, a);
-    for (let i = 0; i < a.instances.length; i++) {
-      const instance = a.instances[i];
+    for (let i = 0; i < a.subTasks.length; i++) {
+      const instance = a.subTasks[i];
       const value = a.values[i];
       if (instance)
         this.put(Def, value, instance);
@@ -86,12 +88,40 @@ function firstDefNotADescendant(tasks) {
     .find(def => tasks.every(({ Def }) => !xIsDescendantOf(def, Def)));
 }
 
+class Task {
+  start;
+  end;
+  Def;
+  values;
+  subTasks;
+  comments;
+  static fromRunnables({ start, end, id }, values) {
+    if (!values)
+      return;
+    const task = new Task();
+    task.start = start;
+    task.end = end;
+    task.Def = getDefinition(id);
+    task.values = values;
+    return task;
+  }
+
+  subTaskify() {
+    const commas = Array(this.values.length - 1).fill(document.createComment("::,"));
+    this.start.after(...commas);
+    this.comments = [this.start, ...commas, this.end];
+    this.subTasks = Array(this.values.length);
+  }
+}
+
 let reusables = new ReuseMap();
 function reuse(todo) {
-  todo = todo.filter(({ values }) => values.length);
   const completedTasks = new Set();
   const removeables = [];
   while (todo.length) {
+    todo = todo.filter(Boolean);
+    if (!todo.length)
+      break;
     const topDef = firstDefNotADescendant(todo);
     const nowTasks = todo.filter(({ Def }) => Def === topDef);
     todo = todo.filter(t => !nowTasks.includes(t));
@@ -117,14 +147,9 @@ function reuse(todo) {
       }
     }
 
-    //3. Reuse run() instances
-    //A. prep nowTask with `<!--::,-->` comments and instances arrays
-    for (let nowTask of nowTasks3) {
-      const commas = Array(nowTask.values.length - 1).fill(document.createComment("::,"));
-      nowTask.start.after(...commas);
-      nowTask.comments = [nowTask.start, ...commas, nowTask.end];
-      nowTask.instances = Array(nowTask.values.length);
-    }
+    //3. Reuse run() subTasks
+    for (let nowTask of nowTasks3)
+      nowTask.subTaskify();
 
     function inBetweens(start, end) {
       const res = [];
@@ -147,7 +172,7 @@ function reuse(todo) {
           continue;
         const reusable = reusables.reuseAny(topDef, nowTask.values[i]);
         if (reusable)
-          nowTask.instances[i] =
+          nowTask.subTasks[i] =
             useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusable);
       }
     }
@@ -157,13 +182,13 @@ function reuse(todo) {
       for (let i = 0; i < nowTask.values.length; i++) {
         if (!nowTask.values[i].length)
           continue;
-        if (nowTask.instances[i]) continue;
+        if (nowTask.subTasks[i]) continue;
         const value = nowTask.values[i];
         const reusePartial = reusables.pop(topDef); //this is an instance, so i should have access to nodes here
         if (!reusePartial) {
           break main;
         }
-        nowTask.instances[i] =
+        nowTask.subTasks[i] =
           useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusePartial);
         for (let k = 0; k < reusePartial.innerHydras.length; k++) {
           const { Def, node } = reusePartial.innerHydras[k];
@@ -171,7 +196,7 @@ function reuse(todo) {
           if (Def && innerValue.length) {
             //todo here we are missing the endNode. This is lost once the reusePartial is filled.
             //i think node is correct, but node.nextSibling is not!
-            todo.push({ Def, values: innerValue, start: node, end: node.nextSibling });
+            todo.push(Task.fromRunnables({ id: Def.id, start: node, end: node.nextSibling }, innerValue));
           } else if (innerValue != node.nodeValue) {
             node.nodeValue = innerValue;
           }
@@ -182,15 +207,15 @@ function reuse(todo) {
     //D. create new
     for (let nowTask of nowTasks3) {
       for (let i = 0; i < nowTask.values.length; i++) {
-        if (nowTask.instances[i]) continue;
-        const instance = nowTask.instances[i] =
+        if (nowTask.subTasks[i]) continue;
+        const instance = nowTask.subTasks[i] =
           useInstance(nowTask.comments[i], nowTask.comments[i + 1], getInstance(topDef));
         const values = nowTask.values[i];
         for (let k = 0; k < instance.innerHydras.length; k++) {
           const { Def, node } = instance.innerHydras[k];
           const innerValue = values[k];
           if (Def && innerValue.length) {
-            todo.push({ Def, values: innerValue, start: node, end: node.nextSibling });
+            todo.push(Task.fromRunnables({ id: Def.id, start: node, end: node.nextSibling }, innerValue));
           } else {
             node.nodeValue = innerValue;
           }
@@ -217,10 +242,7 @@ export function renderUnder(root, state) {
 
   const tasks = [];
   for (let task of findRunnableTemplates(root)) {
-    task.Def = getDefinition(task.id);
-    delete task.id;
-    task.values = renderValues(state, task.Def);
-    tasks.push(task);
+    tasks.push(Task.fromRunnables(task, renderValues(state, getDefinition(task.id))));
   }
 
   reuse(tasks);
