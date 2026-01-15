@@ -94,7 +94,6 @@ class Task {
   Def;
   values;
   subTasks;
-  comments;
   static fromRunnables({ start, end, id }, values) {
     if (!values)
       return;
@@ -109,9 +108,24 @@ class Task {
   subTaskify() {
     const commas = Array(this.values.length - 1).fill(document.createComment("::,"));
     this.start.after(...commas);
-    this.comments = [this.start, ...commas, this.end];
+    const comments = [this.start, ...commas, this.end];
     this.subTasks = Array(this.values.length);
+    this.subTasks2 = this.values.map((v, i) =>
+      ({ start: comments[i], end: comments[i + 1], Def: this.Def, values: v }));
   }
+}
+
+function inBetweens(start, end) {
+  const res = [];
+  for (let n = start.nextSibling; n != end; n = n.nextSibling)
+    res.push(n);
+  return res;
+}
+
+function useInstance(subTask, instance) {
+  subTask.start.after(...inBetweens(instance.start, instance.end));
+  console.log(instance, subTask);
+  return Object.assign(instance, subTask);
 }
 
 let reusables = new ReuseMap();
@@ -151,20 +165,6 @@ function reuse(todo) {
     for (let nowTask of nowTasks3)
       nowTask.subTaskify();
 
-    function inBetweens(start, end) {
-      const res = [];
-      for (let n = start.nextSibling; n != end; n = n.nextSibling)
-        res.push(n);
-      return res;
-    }
-
-    function useInstance(start, end, instance) {
-      start.after(...inBetweens(instance.start, instance.end));
-      instance.start = start;
-      instance.end = end;
-      return instance;
-    }
-
     //B. reuse exact run() instance
     for (let nowTask of nowTasks3) {
       for (let i = 0; i < nowTask.values.length; i++) {
@@ -172,8 +172,7 @@ function reuse(todo) {
           continue;
         const reusable = reusables.reuseAny(topDef, nowTask.values[i]);
         if (reusable)
-          nowTask.subTasks[i] =
-            useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusable);
+          nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], reusable);
       }
     }
 
@@ -188,8 +187,7 @@ function reuse(todo) {
         if (!reusePartial) {
           break main;
         }
-        nowTask.subTasks[i] =
-          useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusePartial);
+        nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], reusePartial);
         for (let k = 0; k < reusePartial.innerHydras.length; k++) {
           const { Def, node } = reusePartial.innerHydras[k];
           const innerValue = value[k];
@@ -208,8 +206,7 @@ function reuse(todo) {
     for (let nowTask of nowTasks3) {
       for (let i = 0; i < nowTask.values.length; i++) {
         if (nowTask.subTasks[i]) continue;
-        const instance = nowTask.subTasks[i] =
-          useInstance(nowTask.comments[i], nowTask.comments[i + 1], getInstance(topDef));
+        const instance = nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], getInstance(topDef));
         const values = nowTask.values[i];
         for (let k = 0; k < instance.innerHydras.length; k++) {
           const { Def, node } = instance.innerHydras[k];
