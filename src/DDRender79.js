@@ -4,6 +4,27 @@ import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 //att!! assumes that arrayWithValues has already been unified.
 //Def => {valuesArrayOfArraysAsKey => [...reusableInstances]}
 //Def => {valuesArrayAsKey => [...reusableInstances]}
+
+//Def => values => [...commaLists]
+//Def1 => values1 => [[a,a1,a2,a3,a_], [b,b1,b2,b3,b_]]
+//then we must also have
+//Def1 => values11 => [[a,a1], [b,b1]]
+//Def1 => values12 => [[a,a2], [b,b2]]
+//Def1 => values13 => [[a,a3], [b,b3]]
+//Def1 => values1_ => [[a,a_], [b,b_]]
+
+//and when we use Def1 => values1 and extract [a,a1,a2,a3,a_], then we will at the same time 
+//    1. split values1 into values11, values12, values13, values1_
+//    2. remove Def1 => values1 => [a,a1]
+//    3. remove Def1 => values11 => [a,a1]
+//    4. remove Def1 => values12 => [a,a2]
+//    5. remove Def1 => values13 => [a,a3]
+//    6. remove Def1 => values1_ => [a,a_]
+//  * when we remove it, we simply move it into the next reusables map.
+//  * we only do this when we have more than two entries in the commaList.
+
+//so, if you have a task that has a Def+values, and this hits such an entry, then we reuse that.
+//
 class ReuseMap {
 
   #map = new Map();
@@ -107,10 +128,10 @@ class Task {
 
   subTaskify() {
     const commas = Array(this.values.length - 1).fill(document.createComment("::,"));
-    this.start.after(...commas);
+    this.start.after(...commas); //todo here, we can find existing ones in subtasks with reusables.
     const comments = [this.start, ...commas, this.end];
-    this.subTasks = Array(this.values.length);
-    this.subTasks2 = this.values.map((v, i) =>
+    // this.subTasks = Array(this.values.length);
+    return this.values.map((v, i) =>
       ({ start: comments[i], end: comments[i + 1], Def: this.Def, values: v }));
   }
 }
@@ -145,6 +166,7 @@ function reuse(todo) {
     const nowTasks2 = [];
     for (let nowTask of nowTasks) {
       const task = reusables.reuseMatch(topDef, nowTask.values, reTask => reTask.start === nowTask.start);
+      //todo we need to update the nowTask here?
       if (!task)
         nowTasks2.push(nowTask);
     }
@@ -155,6 +177,7 @@ function reuse(todo) {
     for (let nowTask of nowTasks2) {
       const reuseTask = reusables.reuseAny(topDef, nowTask.values);
       if (reuseTask) {
+        //todo we need to update the nowTask here?
         inject(nowTask.start, reuseTask.start.nextSibling, reuseTask.end.previousSibling);
       } else {
         nowTasks3.push(nowTask);
@@ -162,66 +185,44 @@ function reuse(todo) {
     }
 
     //3. Reuse run() subTasks
-    for (let nowTask of nowTasks3)
-      nowTask.subTaskify();
+    const subTasks = nowTasks3.flatMap(t => t.subTaskify());
 
+    const subTasks2 = [];
+    for (let sub of subTasks) {
+      const reusable = reusables.reuseMatch(topDef, sub.values, t => t.start === sub.start);
+      if (!reusable)
+        subTasks2.push(sub);
+    }
     //B. reuse exact run() instance
-    for (let nowTask of nowTasks3) {
-      for (let i = 0; i < nowTask.values.length; i++) {
-        if (!nowTask.values[i].length)
-          continue;
-        const reusable = reusables.reuseAny(topDef, nowTask.values[i]);
-        if (reusable)
-          nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], reusable);
-      }
+    const subTasks3 = [];
+    for (let sub of subTasks2) {
+      const reusable = reusables.reuseAny(topDef, sub.values);
+      reusable ?
+        useInstance(sub, reusable) :
+        subTasks3.push(sub);
     }
-
-    //C. reuse partial
-    main: for (let nowTask of nowTasks3) {
-      for (let i = 0; i < nowTask.values.length; i++) {
-        if (!nowTask.values[i].length)
-          continue;
-        if (nowTask.subTasks[i]) continue;
-        const value = nowTask.values[i];
-        const reusePartial = reusables.pop(topDef); //this is an instance, so i should have access to nodes here
-        if (!reusePartial) {
-          break main;
-        }
-        nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], reusePartial);
-        for (let k = 0; k < reusePartial.innerHydras.length; k++) {
-          const { Def, node } = reusePartial.innerHydras[k];
-          const innerValue = value[k];
-          if (Def && innerValue.length) {
-            //todo here we are missing the endNode. This is lost once the reusePartial is filled.
-            //i think node is correct, but node.nextSibling is not!
-            todo.push(Task.fromRunnables({ id: Def.id, start: node, end: node.nextSibling }, innerValue));
-          } else if (innerValue != node.nodeValue) {
-            node.nodeValue = innerValue;
-          }
-        }
-      }
-    }
-
-    //D. create new
-    for (let nowTask of nowTasks3) {
-      for (let i = 0; i < nowTask.values.length; i++) {
-        if (nowTask.subTasks[i]) continue;
-        const instance = nowTask.subTasks[i] = useInstance(nowTask.subTasks2[i], getInstance(topDef));
-        const values = nowTask.values[i];
-        for (let k = 0; k < instance.innerHydras.length; k++) {
-          const { Def, node } = instance.innerHydras[k];
-          const innerValue = values[k];
-          if (Def && innerValue.length) {
-            todo.push(Task.fromRunnables({ id: Def.id, start: node, end: node.nextSibling }, innerValue));
-          } else {
-            node.nodeValue = innerValue;
-          }
+    //C. reuse partial or create new
+    for (let sub of subTasks3) {
+      const reusable = reusables.pop(topDef) ?? getInstance(topDef);
+      useInstance(sub, reusable);
+      //rehydrate
+      for (let k = 0; k < reusable.innerHydras.length; k++) {
+        const { Def, node } = reusable.innerHydras[k];
+        const innerValue = sub.values[k];
+        if (Def && innerValue.length) {
+          //todo here we are missing the endNode. This is lost once the reusePartial is filled.
+          //i think node is correct, but node.nextSibling is not!
+          todo.push(Task.fromRunnables({ id: Def.id, start: node, end: node.nextSibling }, innerValue));
+        } else if (innerValue != node.nodeValue) {
+          node.nodeValue = innerValue;
         }
       }
     }
     //4. add to reusables the tasks that needed internal handling
     for (let nowTask of nowTasks)
       completedTasks.add(nowTask);
+    for (let sub of subTasks)
+      completedTasks.add(sub);
   }
 
   for (let [last, end] of removeables)
