@@ -9,17 +9,15 @@ class ReuseMap {
   #map = new Map();
 
   //deep remember. This is a point for optimization.
-  remember(a, b, v) {
-    this.put(a, b, v);
-    for (let i = 0; i < v.instances.length; i++) {
-      const instance = v.instances[i];
-      const value = v.values[i];
-      if (instance) {
-        this.put(a, value, instance);
-        for (let inner of instance.innerHydras)
-          if (inner.Def)
-            this.remember(inner.Def, inner.values, inner);
-      }
+  remember(a) {
+    const Def = a.Def;
+    const values = a.values;
+    this.put(Def, values, a);
+    for (let i = 0; i < a.instances.length; i++) {
+      const instance = a.instances[i];
+      const value = a.values[i];
+      if (instance)
+        this.put(Def, value, instance);
     }
   }
 
@@ -88,12 +86,12 @@ function firstDefNotADescendant(tasks) {
     .find(def => tasks.every(({ Def }) => !xIsDescendantOf(def, Def)));
 }
 
-const reusables = new ReuseMap();
+let reusables = new ReuseMap();
 function reuse(todo) {
-  const nextReusables = new ReuseMap();
+  todo = todo.filter(({ values }) => values.length);
+  const completedTasks = new Set();
   const removeables = [];
   while (todo.length) {
-    debugger
     const topDef = firstDefNotADescendant(todo);
     const nowTasks = todo.filter(({ Def }) => Def === topDef);
     todo = todo.filter(t => !nowTasks.includes(t));
@@ -122,35 +120,43 @@ function reuse(todo) {
     //3. Reuse run() instances
     //A. prep nowTask with `<!--::,-->` comments and instances arrays
     for (let nowTask of nowTasks3) {
-      nowTask.comments = [
-        nowTask.start,
-        ...Array(nowTask.values.length - 1).fill(document.createComment("::,")),
-        nowTask.end
-      ];
+      const commas = Array(nowTask.values.length - 1).fill(document.createComment("::,"));
+      nowTask.start.after(...commas);
+      nowTask.comments = [nowTask.start, ...commas, nowTask.end];
       nowTask.instances = Array(nowTask.values.length);
     }
 
-    function reuseInstance(start, end, reuseInstance) {
-      start.after(reuseInstance.start.nextSibling);
-      end.before(reuseInstance.end.previousSibling);
-      reuseInstance.start = start;
-      reuseInstance.end = end;
-      return reuseInstance;
+    function inBetweens(start, end) {
+      const res = [];
+      for (let n = start.nextSibling; n != end; n = n.nextSibling)
+        res.push(n);
+      return res;
+    }
+
+    function useInstance(start, end, instance) {
+      start.after(...inBetweens(instance.start, instance.end));
+      instance.start = start;
+      instance.end = end;
+      return instance;
     }
 
     //B. reuse exact run() instance
     for (let nowTask of nowTasks3) {
       for (let i = 0; i < nowTask.values.length; i++) {
+        if (!nowTask.values[i].length)
+          continue;
         const reusable = reusables.reuseAny(topDef, nowTask.values[i]);
         if (reusable)
           nowTask.instances[i] =
-            reuseInstance(nowTask.comments[i], nowTask.comments[i + 1], reusable);
+            useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusable);
       }
     }
 
     //C. reuse partial
     main: for (let nowTask of nowTasks3) {
       for (let i = 0; i < nowTask.values.length; i++) {
+        if (!nowTask.values[i].length)
+          continue;
         if (nowTask.instances[i]) continue;
         const value = nowTask.values[i];
         const reusePartial = reusables.pop(topDef); //this is an instance, so i should have access to nodes here
@@ -158,11 +164,11 @@ function reuse(todo) {
           break main;
         }
         nowTask.instances[i] =
-          reuseInstance(nowTask.comments[i], nowTask.comments[i + 1], reusePartial);
+          useInstance(nowTask.comments[i], nowTask.comments[i + 1], reusePartial);
         for (let k = 0; k < reusePartial.innerHydras.length; k++) {
           const { Def, node } = reusePartial.innerHydras[k];
           const innerValue = value[k];
-          if (Def) {
+          if (Def && innerValue.length) {
             //todo here we are missing the endNode. This is lost once the reusePartial is filled.
             //i think node is correct, but node.nextSibling is not!
             todo.push({ Def, values: innerValue, start: node, end: node.nextSibling });
@@ -178,12 +184,12 @@ function reuse(todo) {
       for (let i = 0; i < nowTask.values.length; i++) {
         if (nowTask.instances[i]) continue;
         const instance = nowTask.instances[i] =
-          reuseInstance(nowTask.comments[i], nowTask.comments[i + 1], getInstance(topDef));
+          useInstance(nowTask.comments[i], nowTask.comments[i + 1], getInstance(topDef));
         const values = nowTask.values[i];
         for (let k = 0; k < instance.innerHydras.length; k++) {
           const { Def, node } = instance.innerHydras[k];
           const innerValue = values[k];
-          if (Def) {
+          if (Def && innerValue.length) {
             todo.push({ Def, values: innerValue, start: node, end: node.nextSibling });
           } else {
             node.nodeValue = innerValue;
@@ -193,11 +199,16 @@ function reuse(todo) {
     }
     //4. add to reusables the tasks that needed internal handling
     for (let nowTask of nowTasks)
-      nextReusables.remember(nowTask);
+      completedTasks.add(nowTask);
   }
+
   for (let [last, end] of removeables)
     for (let next = last.nextSibling; next != end; next = next.nextSibling)
       next.remove();
+
+  const nextReusables = new ReuseMap();
+  for (let task of completedTasks)
+    nextReusables.remember(task);
   reusables = nextReusables;
 }
 

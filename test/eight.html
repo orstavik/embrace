@@ -1,9 +1,12 @@
 <div id="app">
-  <!--:: for($.item of $)-->
   <h1>hello sunshine</h1>
   <ol>
-    <!--:: if($.item.a)-->
-    <li>#: ${$.item.a}</li>
+    <!--:: for($.item of $)-->
+    <li>#: ${$.item.a}
+      <!--:: if($.item.b)-->
+      + ${$.item.b}
+      <!--::-->
+    </li>
     <!--::-->
   </ol>
 </div>
@@ -14,9 +17,9 @@
 </script>
 <script type="module">
   import { renderUnder } from "/src/DDRender78.js";
-  renderUnder(document.getElementById("app"), [{ a: "alpha" }, { a: "beta" }]);
+  renderUnder(document.getElementById("app"), [{ a: "alpha" }, { a: "beta", b: "beta2" }]);
 
   setTimeout(_ => {
-    renderUnder(document.getElementById("app"), [{ a: "gamma" }, { a: "delta" }]);
+    renderUnder(document.getElementById("app"), [{ a: "gamma" }, { a: "delta", b: "delta2" }]);
   }, 2000);
 </script>
