@@ -74,9 +74,8 @@ function useInstance(task, { start, end, innerHydras }) {
 }
 
 let reusables = new ReuseMap();
-function reuse(todo) {
+function reuse(todo, removeables) {
   const nextReusables = new ReuseMap();
-  const removeables = [];
   while (todo.length) {
     const nowDef = firstDefNotADescendant(todo);
     const nowTasks = todo.filter(({ defValue: { Def } }) => Def === nowDef);
@@ -93,6 +92,7 @@ function reuse(todo) {
       const reusable = reusables.sameValueAndDef(task);
       if (reusable) {
         useInstance(task, reusable);
+        //todo we need to maybe comma instance from the reusables
         nextReusables.remember(task);
       } else {
         nowTasks3.push(task);
@@ -108,18 +108,31 @@ function reuse(todo) {
         const { Def, node } = task.innerHydras[k];
         const innerValue = task.defValue.values[k];
         if (Def && innerValue.length) {
-          todo.push(...splitTask(innerValue, node, node.nextSibling));
+          const newTasks = splitTask(innerValue, node, node.nextSibling);
+          // const { tasks, removeables: newRemoveables } = splitTask(innerValue, node, node.nextSibling);
+          todo.push(...newTasks);
+          // removeables.push(newRemoveables);
         } else if (!Def && innerValue != node.nodeValue) {
           node.nodeValue = innerValue;
         }
       }
     }
   }
+  for (let { start, end } of removeables) {
+    const res = [];
+    for (; start != end; start = start.nextSibling)
+      res.push(start);
+    res.push(end);
+    res.forEach(n => n.remove());
+  }
 
-  //todo we need to find the nodes in reusables that are not forgotten, and then remove them.
   reusables = nextReusables;
 }
 
+// const news = [start.cloneNode(), ...Array(defValues.length - 1).fill(document.createComment("::,")), end.cloneNode()];
+//   start.before(...news);
+//   const tasks = defValues.map((defValue, i) => ({ defValue, start: news[i], end: news[i + 1] }));
+//   return { tasks, removeables: { start, end } };
 function splitTask(defValues, start, end) {
   const commas = Array(defValues.length - 1).fill(document.createComment("::,"));
   start.after(...commas);
@@ -138,20 +151,29 @@ function setupInnerDefs(Def) {
   return Def.innerDefs = [...new Set(res)];
 }
 
-// let rootTasks = [];
 export function renderUnder(root, state) {
+  //if we don't have a function for this root, then we need to make one.
+  //we make the function finding the runnable template nodes.
+  //this root function is then fixed so that next time we need to run it,
+  //we renderDefValues and then we reuse it.
+  //the function is essentially a innerHydra list with a set of start end nodes.
+  //then what the f.. do we do here?
+
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
   const tasks = [];
+  const removeables = [];
   for (let task of findRunnableTemplates(root)) {
     const Def = getDefinition(task.id);
     setupInnerDefs(Def);
-    //todo this is different when i do it the first time, and when i do it the second time.
-    //todo the second time, we already have `<!--::,-->` nodes in the dom.
+
     const defValues = renderDefValues(state, Def);
-    tasks.push(...splitTask(defValues, task.start, task.end));
+    const newTasks = splitTask(defValues, task.start, task.end);
+    // const { tasks: newTasks, removeables: newRemoveables } = splitTask(defValues, task.start, task.end);
+    tasks.push(...newTasks);
+    // removeables.push(newRemoveables);
   }
 
-  reuse(tasks);
+  reuse(tasks, removeables);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
