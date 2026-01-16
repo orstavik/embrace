@@ -28,7 +28,6 @@ function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd) {
     return removeables.push([a.previousSibling, aEnd]);
   //4. identical, but a was shorter than b, so we add nodes.
   if (a === aEnd) {
-    a = a.previousSibling;
     for (let t = a.previousSibling, next = b, nextNext; next != bEnd; next = nextNext) {
       nextNext = next.nextSibling;
       t.after(next);
@@ -38,8 +37,11 @@ function addNodesSmartly(removeables, aStart, aEnd, bStart, bEnd) {
   }
   //5. there are differences after the head of identicals. we just need to add all the b side nodes.
   let t;
-  for (t = a.previousSibling; b != bEnd; t = b, b = b.nextSibling)
-    t.after(b);
+  for (t = a.previousSibling, next = b, nextNext; next != bEnd; next = nextNext) {
+    nextNext = next.nextSibling;
+    t.after(next);
+    t = next;
+  }
   return removeables.push([t, aEnd]);
 }
 
@@ -87,6 +89,22 @@ function reuse(todo, reusables) {
     }
 
     const partialAndNewTemplates = Object.values(thisDefReusables).flat();
+    // todo, here we are reusing a partial. 
+    // That means that potentially have a lot of innerTemplates that we would like to reuse.
+    // we only care about the innerTemplates that are Defs.
+    for (let partial of partialAndNewTemplates) {
+      for (let i = 0; i < partial.value.length; i++) {
+        const value = partial.value[i];
+        const h = i % partial.innerHydras.length;
+        const inner = partial.innerHydras[h];
+        if (inner.Def) {
+          const key = JSON.stringify(inner.value);
+          reusables[inner.Def.id] ??= {};
+          reusables[inner.Def.id][key] ??= [];
+          reusables[inner.Def.id][key].push(inner);
+        }
+      }
+    }
     while (partialAndNewTemplates.length < remainingTasks.length)
       partialAndNewTemplates.push(getInstance(topDef));
 
@@ -99,13 +117,12 @@ function reuse(todo, reusables) {
       for (let i = 0; i < nowTask.innerHydras.length; i++) {
         const value = nowTask.value[i];
         const innerTask = nowTask.innerHydras[i];
-        if (!innerTask.Def)
-          innerTask.node.nodeValue = value;
-        else {
-          //todo what do we do with the value??
-          //todo and how do we split up the inner definitions of the reuse tasks?
-          todo.push({ ...innerTask, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(value) });
-        }
+        if (!innerTask.Def) {
+          if (innerTask.node.nodeValue !== value)
+            innerTask.node.nodeValue = value;
+        } else
+          //todo i think that this is correct.
+          todo.push({ Def: innerTask.Def, value, intro: nowTask.intro + "|" + nowTask.Def.id, key: JSON.stringify(value) })
       }
     }
   }
