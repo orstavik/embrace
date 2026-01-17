@@ -33,48 +33,66 @@ function extractTopDefNodes(nodes) {
   return { Def, topNodes, otherNodes };
 }
 
-function reuseInCurrentListPosition(firstNodes) {
-  const toBeAdded = [];
-  const maybeReusedOrDeleted = [];
-  for (let n of firstNodes) {
-    const { commas, values, newValues } = n;
+function injectComma(first, position, value, newValue) {
+  const before = first.commas[position - 1];
+  const after = first.commas[position];
+  const c = document.createComment("::,");
+  c.first = first;
+  c.value = value;
+  c.newValue = newValue;
+  c.end = after;
+  before.end = c;
+  after.before(c);
+  first.commas.splice(position, 0, c);
+  return c;
+}
+
+// if the values for the list i the same, we do nothing.
+// we handle special cases for empty arrays, because we need to see the first comma as void.
+// otherwise, we do a diff, so that we get to reuse as much as possible.
+function reuseListLevel(firstNodes) {
+  const toBeAdded = new Set();
+  const toBeReused = new Set();
+  for (let first of firstNodes) {
+    const { commas, values, newValues } = first;
     if (values == newValues)
       continue;
-    debugger
-    const diffs = diff(values, newValues);
-    const newCommas = [];
-    for (let i = 0, oldI = 0; i < diffs.length; i++) {
-      const diff = diffs[i];
-      if (diff.type == "match") {
-        newCommas.push(commas[oldI]);
-        oldI++;
-      } else if (diff.type == "ins") {
-        const c = document.createComment("::,");
-        newCommas.push(c);
-        toBeAdded.push(diff.values);
-      } else if (diff.type == "del") {
-        maybeReusedOrDeleted.push(n);
-        oldI++;
+
+    if (!values.length) {            //special case, for empty values
+      first.newValue = newValues[0];
+      toBeAdded.add(first);
+      for (let i = 1; i < newValues.length; i++)
+        toBeAdded.add(injectComma(first, i, [], newValues[i]));
+    } else if (!newValues.length) {  //special case, for empty newValues
+      commas.slice(0, -1).forEach(c => toBeReused.add(c));
+    } else {
+      debugger
+      const diffs = diff(values, newValues);
+      for (let i = 0; i < diffs.length; i++) {
+        const { type, x, y } = diffs[i];
+        const oldV = values[x];
+        const newV = newValues[y];
+        if (type == "match");//do nothing
+        else if (type == "ins") toBeAdded.add(injectComma(first, i, oldV, newV));
+        else if (type == "del") toBeReused.add(commas[i]);
       }
     }
   }
-  return { toBeAdded, maybeReusedOrDeleted };
+  return { toBeAdded, toBeReused };
 }
 
-function moveNodesIfSameValue(toBeAdded, maybeReusedOrDeleted) {
-  const notYetDone = [], notYetReused = new Set(maybeReusedOrDeleted);
-  for (let newN of toBeAdded) {
-    const match = maybeReusedOrDeleted.find(n => n.value == newN.value);
-    if (!match) {
-      notYetDone.push(newN);
-    } else {
-      moveContent(newN, match);
-      notYetReused.delete(match);
+function moveNodesWithSameValues(toBeAdded, toBeReused) {
+  main: for (let newN of toBeAdded) {
+    for (let oldN of toBeReused) {
+      if (newN.newValue == oldN.value) {
+        moveContent(newN, oldN); //must update the values.
+        toBeReused.delete(oldN);
+        toBeAdded.delete(newN);
+        continue main;
+      }
     }
-    //moves the nodes from after match to after newN
-    //updates the .end value of the old match
   }
-  return { notYetDone, notYetReused };
+  return { toBeAdded, toBeReused };
 }
 
 function hydrate(node, Def) {
@@ -87,6 +105,8 @@ function hydrate(node, Def) {
     const { hydra, Def: innerDef } = Def.innerHydras[i];
     if (innerDef) {
       innerNode.newValue = newValue;
+      innerNode.Def = innerDef;
+      //todo here we are making a 
       newInnerFirstNodes.push(innerNode);
     } else {
       innerNode.nodeValue = newValue;
@@ -95,27 +115,50 @@ function hydrate(node, Def) {
   return newInnerFirstNodes;
 }
 
-function reuseNodesOrCreateNewInstancesUsingHydration(Def, nodes, reusableNodes, extras) {
-  const innerFirstNodes = [];
-  const notUsed = renderDefValues.slice(nodes.length);
+function StartNode(start, Def, end) {
+  start.values = [];
+  start.value = [];
+  start.commas = [start, end];
+  start.commas.forEach(n => n.first = start);
+  start.Def = Def;
+  return start;
+}
 
-  //todo this first part can be done way more efficiently by finding the reusableNodes/extras that *most* resemble the other nodes.
-  let i;
-  for (i = 0; i <= nodes.length && i <= reusableNodes.length + extras.length; i++) {
-    const n = nodes[i];
-    const oldN = reusableNodes[i] ?? extras.pop();
+function getInstance2(Def) {
+  const instance = getInstance(Def);
+  const { start, end, innerHydras } = instance;
+  start.nodes = innerHydras.map(({ node }) => node);
+  //what about commas??
+  start.values = [];
+  start.value = [];
+  start.end = end;
+  start.Def = Def;
+  return start;
+}
+
+function moveContent(targetStart, sourceStart) {
+  const body = [];
+  for (let n = sourceStart; n != sourceStart.end; n = n.nextSibling)
+    body.push(n);
+  targetStart.after(...body);
+  targetStart.nodes = sourceStart.nodes;
+}
+
+function reuseNodesOrCreateNewInstancesUsingHydration(Def, nodes, reusableNodes) {
+  const innerFirstNodes = [];
+  const reusables = [...reusableNodes];
+  //todo we can match reusables with nodes much better. If the reusables are equal on the Def only, 
+  //todo then we should use that match, and only do the update on the textNode level.
+  let i = 0;
+  for (let n of nodes) {
+    debugger
+    const oldN = reusables[i++] ?? getInstance2(Def);
     moveContent(n, oldN);
     const newInnerFirstNodes = hydrate(n, Def);
     innerFirstNodes.push(...newInnerFirstNodes);
+    n.value = n.newValue;
   }
-  for (let i = reusableNodes.length; i < nodes.length; i++) {
-    const n = nodes[i];
-    const freshInstance = getInstance(Def);
-    moveContent(n, freshInstance.start);
-    const newInnerFirstNodes = hydrate(n, Def);
-    innerFirstNodes.push(...newInnerFirstNodes);
-  }
-  return { allIsDone: true, innerFirstNodes, notUsed };
+  return { innerFirstNodes, reusables: reusables.slice(nodes.size) };
 }
 
 function extractAllInnerDefNodes(Def, nodes) {
@@ -132,29 +175,29 @@ function extractAllInnerDefNodes(Def, nodes) {
 }
 
 function reuse(firstNodes) {
+  let allNotUsed = new Set();
   const extras = []; //todo here we can keep track of extra nodes that we might reuse later if we want.
   while (firstNodes.length) {
     //1. all the topNodes will be handled one level in this round.
     let { Def: nowDef, topNodes: nowTopNodes, otherNodes } = extractTopDefNodes(firstNodes);
     firstNodes = otherNodes;
 
-    //2. match on list level.if the values for a firstStartNode is unchanged, then we skip that series.
-    //   leave as many nodes as possible in a series of nodes unchanged.
-    const { toBeAdded, maybeReusedOrDeleted } = reuseInCurrentListPosition(nowTopNodes);
+    //2. reuse list level
+    const { toBeAdded, toBeReused } = reuseListLevel(nowTopNodes);
 
+    //3. template stamp level
     const nowDefExtras = extras.filter(n => n.Def == nowDef);
-    const reusables = [...maybeReusedOrDeleted, ...nowDefExtras];
-    const { notYetDone, notYetReused } = moveNodesIfSameValue(toBeAdded, reusables);
-
-    ///   INDIVIDUAL TEMPLATE STAMP   ///
+    const toBeReusedWithExtras = toBeReused.union(new Set(nowDefExtras));
+    moveNodesWithSameValues(toBeAdded, toBeReusedWithExtras);
 
     //4. try to just move as many of the individual instances as possible.
-    const { allIsDone, notUsed, innerFirstNodes } = reuseNodesOrCreateNewInstancesUsingHydration(nowDef, notYetDone, notYetReused);
+    const { innerFirstNodes, reusables } =
+      reuseNodesOrCreateNewInstancesUsingHydration(nowDef, toBeAdded, toBeReusedWithExtras);
 
-    const extraInnerFirstNodes = extractAllInnerDefNodes(notUsed);
+    const extraInnerFirstNodes = extractAllInnerDefNodes(nowDef, reusables);
+    allNotUsed = allNotUsed.union(toBeReusedWithExtras);
     extras.push(...extraInnerFirstNodes);
-    //5. notUsed might contain lots of useable nodes.
-    //   to find them, we need to dissolve them, then take only the 
+
     firstNodes.push(...innerFirstNodes);
   } //redo while firstNodes has tasks
 
@@ -176,12 +219,8 @@ export function renderUnder(root, state) {
   let rootInstance = rootInstances.get(root);
   if (!rootInstance) {
     rootInstance = [];
-    for (let { start, id, end } of findRunnableTemplates(root)) {
-      start.Def = getDefinition(id);
-      start.values = [];
-      start.commas = [start, end];
-      rootInstance.push(start);
-    }
+    for (let { start, id, end } of findRunnableTemplates(root))
+      rootInstance.push(StartNode(start, getDefinition(id), end));
     rootInstances.set(root, rootInstance);
   }
   const firstNodes = rootInstance.map(n =>
