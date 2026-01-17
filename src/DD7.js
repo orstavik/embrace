@@ -12,6 +12,9 @@ export function register(template) {
     hydra,
     Def: getDefinition(id),
   }));
+  template.innerDefs = template.innerHydras
+    .flatMap(({ Def }) => Def && [Def, ...Def.innerDefs])
+    .filter(Boolean);
 }
 
 export function getDefinition(id) {
@@ -29,11 +32,14 @@ export function getInstance(Def) {
 }
 
 export function findEndComment(start) {
+  const commas = [];
   for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
     if (end.nodeType === Node.COMMENT_NODE) {
       const endTxt = end.nodeValue.trim();
       if (!depth && endTxt == "::")
-        return end;
+        return { end, commas: [start, ...commas, end] };
+      if (!depth && endTxt == "::,")
+        commas.push(end);
       if (endTxt == "::")
         depth--;
       else if (endTxt.startsWith(":: "))
@@ -47,12 +53,12 @@ export function* findDollarDots(node) {
     const txt = node.nodeValue?.trim();
     if (node.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
       const id = txt.match(/^::\s+(id_[0-9a-f]{32})\s*$/i)?.[1];
-      let end = findEndComment(node);
+      let { end, commas } = findEndComment(node);
       if (!end) { //implicit close at endOf siblings
         end = document.createComment("::");
         node.parentNode.append(end);
       }
-      const templ = { start: node, end, id };
+      const templ = { start: node, end, commas, id };
       traverser.currentNode = templ.end;
       yield templ;
     } else if (node.nodeType === Node.ELEMENT_NODE) {
