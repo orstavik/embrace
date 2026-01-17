@@ -12,9 +12,7 @@ export function register(template) {
     hydra,
     Def: getDefinition(id),
   }));
-  template.innerDefs = template.innerHydras
-    .flatMap(({ Def }) => Def && [Def, ...Def.innerDefs])
-    .filter(Boolean);
+  template.position = Object.keys(dollarDots).length;
 }
 
 export function getDefinition(id) {

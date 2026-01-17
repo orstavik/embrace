@@ -15,13 +15,6 @@ function renderDefValues(state, Def) {
   return values;
 }
 
-//todo rename Def to Type?
-function firstDefNotADescendant(tasks) {
-  for (let { defValue: { Def } } of tasks)
-    if (tasks.every(({ defValue: { Def: otherDef } }) => !otherDef.innerDefs.includes(Def)))
-      return Def;
-}
-
 //att!! assumes that arrayWithValues has already been unified.
 class ReuseMap {
 
@@ -77,7 +70,9 @@ let reusables = new ReuseMap();
 function reuse(todo, removeables) {
   const nextReusables = new ReuseMap();
   while (todo.length) {
-    const nowDef = firstDefNotADescendant(todo);
+    //nowDef is the task with the most encapsulating Def
+    const nowDef = todo.map(({ defValue: { Def } }) => Def)
+      .reduce((a, b) => a.position > b.position ? a : b);
     const nowTasks = todo.filter(({ defValue: { Def } }) => Def === nowDef);
     todo = todo.filter(t => !nowTasks.includes(t));
 
