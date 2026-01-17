@@ -1,5 +1,6 @@
 import { getDefinition, findRunnableTemplates, getInstance } from "./DD7.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
+import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
 const tupleMap = {};
 const tuplify = (obj) => tupleMap[JSON.stringify(obj)] ??= obj;
@@ -10,109 +11,153 @@ function renderDefValues(state, Def) {
   Def.hydra($, function run() {
     const innerValues = Def.innerHydras.map(inner =>
       inner.Def ? renderDefValues($, inner.Def) : inner.hydra($));
-    values.push(tuplify({ Def, values: innerValues }));
+    values.push(tuplify(innerValues));
   });
   return values;
 }
+// function useInstance(task, { start, end, innerHydras }) {
+//   task.innerHydras = innerHydras;
+//   const res = [];
+//   let n;
+//   for (n = start.nextSibling; n != end; n = n.nextSibling)
+//     res.push(n);
+//   task.start.after(...res);
+// }
 
-//att!! assumes that arrayWithValues has already been unified.
-class ReuseMap {
-
-  #startToTask = new Map();
-  #defValueToTasks = new Map();
-  #defToTasks = new Map();
-
-  startIsUnchangedAndRemove({ start, defValue }) {
-    const task = this.#startToTask.get(start);
-    return task && task.defValue == defValue && this.forget(task);
-  }
-
-  sameValueAndDef({ defValue }) {
-    const task = this.#defValueToTasks.get(defValue)?.values().next().value;
-    return task && this.forget(task);
-  }
-
-  pop(def) {
-    const task = this.#defToTasks.get(def)?.values().next().value;
-    return task && this.forget(task);
-  }
-
-  remember(...tasks) {
-    for (let task of tasks) {
-      this.#startToTask.set(task.start, task);
-      let set = this.#defValueToTasks.get(task.defValue);
-      !set && this.#defValueToTasks.set(task.defValue, set = new Set());
-      set.add(task);
-      let defSet = this.#defToTasks.get(task.defValue.Def);
-      !defSet && this.#defToTasks.set(task.defValue.Def, defSet = new Set());
-      defSet.add(task);
-    }
-  }
-
-  forget(task) {
-    this.#startToTask.delete(task.start);
-    this.#defValueToTasks.get(task.defValue)?.delete(task);
-    this.#defToTasks.get(task.defValue.Def)?.delete(task);
-    return task;
-  }
+//finds all the nodes with the outermost Def (ie. Def added the latest to the Def registry)
+function extractTopDefNodes(nodes) {
+  const Def = nodes.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
+  const topNodes = [], otherNodes = [];
+  for (let n of nodes)
+    n.Def === Def ? topNodes.push(n) : otherNodes.push(n);
+  return { Def, topNodes, otherNodes };
 }
 
-function useInstance(task, { start, end, innerHydras }) {
-  task.innerHydras = innerHydras;
-  const res = [];
-  let n;
-  for (n = start.nextSibling; n != end; n = n.nextSibling)
-    res.push(n);
-  task.start.after(...res);
-}
-
-let reusables = new ReuseMap();
-function reuse(todo, removeables) {
-  const nextReusables = new ReuseMap();
-  while (todo.length) {
-    //nowDef is the task with the most encapsulating Def
-    const nowDef = todo.map(({ defValue: { Def } }) => Def)
-      .reduce((a, b) => a.position > b.position ? a : b);
-    const nowTasks = todo.filter(({ defValue: { Def } }) => Def === nowDef);
-    todo = todo.filter(t => !nowTasks.includes(t));
-
-    //A. reuse superExact run() instance
-    const unchanged = nowTasks.filter(t => reusables.startIsUnchangedAndRemove(t));
-    nextReusables.remember(...unchanged);
-    const nowTasks2 = nowTasks.filter(t => !unchanged.includes(t));
-
-    //B. reuse exact run() instance
-    const nowTasks3 = [];
-    for (let task of nowTasks2) {
-      const reusable = reusables.sameValueAndDef(task);
-      if (reusable) {
-        useInstance(task, reusable);
-        //todo we need to maybe comma instance from the reusables
-        nextReusables.remember(task);
-      } else {
-        nowTasks3.push(task);
-      }
-    }
-    //C. reuse partial or create new
-    for (let task of nowTasks3) {
-      const usable = reusables.pop(nowDef) ?? getInstance(nowDef);
-      useInstance(task, usable);
-      nextReusables.remember(task);
-      //rehydrate
-      for (let k = 0; k < task.innerHydras.length; k++) {
-        const { Def, node } = task.innerHydras[k];
-        const innerValue = task.defValue.values[k];
-        if (Def && innerValue.length) {
-          const newTasks = splitTask(innerValue, node, node.nextSibling);
-          // const { tasks, removeables: newRemoveables } = splitTask(innerValue, node, node.nextSibling);
-          todo.push(...newTasks);
-          // removeables.push(newRemoveables);
-        } else if (!Def && innerValue != node.nodeValue) {
-          node.nodeValue = innerValue;
-        }
+function reuseInCurrentListPosition(firstNodes) {
+  const toBeAdded = [];
+  const maybeReusedOrDeleted = [];
+  for (let n of firstNodes) {
+    const { commas, values, newValues } = n;
+    if (values == newValues)
+      continue;
+    debugger
+    const diffs = diff(values, newValues);
+    const newCommas = [];
+    for (let i = 0, oldI = 0; i < diffs.length; i++) {
+      const diff = diffs[i];
+      if (diff.type == "match") {
+        newCommas.push(commas[oldI]);
+        oldI++;
+      } else if (diff.type == "ins") {
+        const c = document.createComment("::,");
+        newCommas.push(c);
+        toBeAdded.push(diff.values);
+      } else if (diff.type == "del") {
+        maybeReusedOrDeleted.push(n);
+        oldI++;
       }
     }
   }
+  return { toBeAdded, maybeReusedOrDeleted };
+}
+
+function moveNodesIfSameValue(toBeAdded, maybeReusedOrDeleted) {
+  const notYetDone = [], notYetReused = new Set(maybeReusedOrDeleted);
+  for (let newN of toBeAdded) {
+    const match = maybeReusedOrDeleted.find(n => n.value == newN.value);
+    if (!match) {
+      notYetDone.push(newN);
+    } else {
+      moveContent(newN, match);
+      notYetReused.delete(match);
+    }
+    //moves the nodes from after match to after newN
+    //updates the .end value of the old match
+  }
+  return { notYetDone, notYetReused };
+}
+
+function hydrate(node, Def) {
+  const newInnerFirstNodes = [];
+  for (let i = 0; i < node.newValue.length; i++) {
+    const newValue = node.newValue[i];
+    const oldValue = node.value[i];
+    if (newValue == oldValue) continue; //we don't hydrate if the value is unchanged.
+    const innerNode = node.nodes[i];
+    const { hydra, Def: innerDef } = Def.innerHydras[i];
+    if (innerDef) {
+      innerNode.newValue = newValue;
+      newInnerFirstNodes.push(innerNode);
+    } else {
+      innerNode.nodeValue = newValue;
+    }
+  }
+  return newInnerFirstNodes;
+}
+
+function reuseNodesOrCreateNewInstancesUsingHydration(Def, nodes, reusableNodes, extras) {
+  const innerFirstNodes = [];
+  const notUsed = renderDefValues.slice(nodes.length);
+
+  //todo this first part can be done way more efficiently by finding the reusableNodes/extras that *most* resemble the other nodes.
+  let i;
+  for (i = 0; i <= nodes.length && i <= reusableNodes.length + extras.length; i++) {
+    const n = nodes[i];
+    const oldN = reusableNodes[i] ?? extras.pop();
+    moveContent(n, oldN);
+    const newInnerFirstNodes = hydrate(n, Def);
+    innerFirstNodes.push(...newInnerFirstNodes);
+  }
+  for (let i = reusableNodes.length; i < nodes.length; i++) {
+    const n = nodes[i];
+    const freshInstance = getInstance(Def);
+    moveContent(n, freshInstance.start);
+    const newInnerFirstNodes = hydrate(n, Def);
+    innerFirstNodes.push(...newInnerFirstNodes);
+  }
+  return { allIsDone: true, innerFirstNodes, notUsed };
+}
+
+function extractAllInnerDefNodes(Def, nodes) {
+  const extras = [];
+  for (let n of nodes) {
+    for (let i = 0; i < n.innerHydras.length; i++) {
+      const { Def: innerDef } = n.innerHydras[i];
+      const innerNode = n.nodes[i];
+      if (innerDef)
+        extras.push(innerNode);
+    }
+  }
+  return extras;
+}
+
+function reuse(firstNodes) {
+  const extras = []; //todo here we can keep track of extra nodes that we might reuse later if we want.
+  while (firstNodes.length) {
+    //1. all the topNodes will be handled one level in this round.
+    let { Def: nowDef, topNodes: nowTopNodes, otherNodes } = extractTopDefNodes(firstNodes);
+    firstNodes = otherNodes;
+
+    //2. match on list level.if the values for a firstStartNode is unchanged, then we skip that series.
+    //   leave as many nodes as possible in a series of nodes unchanged.
+    const { toBeAdded, maybeReusedOrDeleted } = reuseInCurrentListPosition(nowTopNodes);
+
+    const nowDefExtras = extras.filter(n => n.Def == nowDef);
+    const reusables = [...maybeReusedOrDeleted, ...nowDefExtras];
+    const { notYetDone, notYetReused } = moveNodesIfSameValue(toBeAdded, reusables);
+
+    ///   INDIVIDUAL TEMPLATE STAMP   ///
+
+    //4. try to just move as many of the individual instances as possible.
+    const { allIsDone, notUsed, innerFirstNodes } = reuseNodesOrCreateNewInstancesUsingHydration(nowDef, notYetDone, notYetReused);
+
+    const extraInnerFirstNodes = extractAllInnerDefNodes(notUsed);
+    extras.push(...extraInnerFirstNodes);
+    //5. notUsed might contain lots of useable nodes.
+    //   to find them, we need to dissolve them, then take only the 
+    firstNodes.push(...innerFirstNodes);
+  } //redo while firstNodes has tasks
+
   for (let { start, end } of removeables) {
     const res = [];
     for (; start != end; start = start.nextSibling)
@@ -124,51 +169,25 @@ function reuse(todo, removeables) {
   reusables = nextReusables;
 }
 
-// const news = [start.cloneNode(), ...Array(defValues.length - 1).fill(document.createComment("::,")), end.cloneNode()];
-//   start.before(...news);
-//   const tasks = defValues.map((defValue, i) => ({ defValue, start: news[i], end: news[i + 1] }));
-//   return { tasks, removeables: { start, end } };
-function splitTask(defValues, start, end) {
-  const commas = Array(defValues.length - 1).fill(document.createComment("::,"));
-  start.after(...commas);
-  const starts = [start, ...commas];
-  const ends = [...commas, end];
-  return defValues.map((defValue, i) => ({ defValue, start: starts[i], end: ends[i] }));
-}
-
-// function setupInnerDefs(Def) {
-//   if (Def.innerDefs)
-//     return Def.innerDefs;
-//   let res = [];
-//   for (let inner of Def.innerHydras)
-//     if (inner.Def)
-//       res.push(inner.Def, ...setupInnerDefs(inner.Def));
-//   return Def.innerDefs = [...new Set(res)];
-// }
-
+let rootInstances = new WeakMap();
 export function renderUnder(root, state) {
-  //if we don't have a function for this root, then we need to make one.
-  //we make the function finding the runnable template nodes.
-  //this root function is then fixed so that next time we need to run it,
-  //we renderDefValues and then we reuse it.
-  //the function is essentially a innerHydra list with a set of start end nodes.
-  //then what the f.. do we do here?
 
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
-  const tasks = [];
-  const removeables = [];
-  for (let task of findRunnableTemplates(root)) {
-    const Def = getDefinition(task.id);
-    // setupInnerDefs(Def);
-
-    const defValues = renderDefValues(state, Def);
-    const newTasks = splitTask(defValues, task.start, task.end);
-    // const { tasks: newTasks, removeables: newRemoveables } = splitTask(defValues, task.start, task.end);
-    tasks.push(...newTasks);
-    // removeables.push(newRemoveables);
+  let rootInstance = rootInstances.get(root);
+  if (!rootInstance) {
+    rootInstance = [];
+    for (let { start, id, end } of findRunnableTemplates(root)) {
+      start.Def = getDefinition(id);
+      start.values = [];
+      start.commas = [start, end];
+      rootInstance.push(start);
+    }
+    rootInstances.set(root, rootInstance);
   }
+  const firstNodes = rootInstance.map(n =>
+    Object.assign(n, { newValues: renderDefValues(state, n.Def) }));
 
-  reuse(tasks, removeables);
+  reuse(firstNodes);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
