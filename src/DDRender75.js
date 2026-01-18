@@ -16,6 +16,23 @@ function renderDefValues(state, Def) {
   return values;
 }
 
+class FreshStampInstance {
+  #nodes;
+  #start;
+  #end;
+  #value = [];
+  constructor(Def) {
+    const { start, end, innerHydras } = getInstance(Def);
+    this.#nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
+    this.#start = start;
+    this.#end = end;
+  }
+  get start() { return this.#start; }
+  get end() { return this.#end; }
+  get nodes() { return this.#nodes; }
+  get value() { return this.#value; }
+}
+
 class Stamp {
   #group;
   #start;
@@ -29,30 +46,33 @@ class Stamp {
   }
 
   get start() { return this.#start; }
+  get end() { return this.#group.getEndNode(this); }
   get Def() { return this.#group.Def; }
   set value(v) { this.#value = v; }
 
-  hydrate(newValue) {
-    if (this.#value == newValue)
-      return;
+  fillAndHydrate(otherStamp) {
+    this.fill(otherStamp.start, otherStamp.end, otherStamp.nodes);
     const res = [];
-    for (let i = 0; i < newValue.length; i++) {
+    for (let i = 0; i < this.#value.length; i++) {
       const { Def, hydra } = this.#group.Def.innerHydras[i];
-      const node = this.#nodes[i];
+      const { start, end } = this.#nodes[i];
       const value = this.#value[i];
-      const newValue = newValue[i];
-      if (newValue == value);
-      else if (Def) res.push(StampGroup.make(Def, node, value, newValue));
-      else node.nodeValue = newValue;
+      const oldValue = otherStamp.value[i];
+      debugger;
+      if (oldValue != value) {
+        if (Def) res.push(StampGroup.make(Def, value, start, end));
+        else start.nodeValue = value;
+      }
     }
     return res;
   }
 
-  fill(start, end, nodes, values) {
+  //todo the fill should use the other stamp. Not the start, end, nodes. It should look stamp like.
+
+  fill(start, end, nodes) {
     if (this.#nodes)
       throw new Error("Stamp can only be filled once");
     this.#nodes = nodes;
-    this.#value = values;
     let target = this.#start;
     for (let n = start.nextSibling, nextNode; n != end; n = nextNode) {
       nextNode = n.nextSibling;
@@ -73,6 +93,10 @@ class StampGroup {
   #newStampsNotFilled;
   #filledStampsNotUsed;
   #end;
+
+  getEndNode(stamp) {
+    return this.#stamps[this.#stamps.indexOf(stamp) + 1]?.start ?? this.#end;
+  }
 
   get fillables() { return this.#newStampsNotFilled }
   get reusables() { return this.#filledStampsNotUsed }
@@ -101,7 +125,7 @@ class StampGroup {
       newComment.stampGroup = this;
       oldComment.stampGroup = null;
     }
-    const newStamp = new Stamp(this, value, newComment);
+    const newStamp = new Stamp(this, newComment, value);
     this.#stamps.splice(pos, 0, newStamp);
     return newStamp;
   }
@@ -164,7 +188,6 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     fillIt: for (let fillable of fillables) {
       for (let reusable of reusables) {
         if (fillable.value === reusable.value) {
-          debugger;
           fillable.consume(reusable);
           fillables.delete(fillable);
           reusables.delete(reusable);
@@ -175,9 +198,15 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
 
     //4. reuse and hydrate as many as possible
     reuseIt: for (let reusable of reusables) {
+      //todo here we can try to match fillables and reusables to find matches that only differ in text nodes, 
+      // todo we want 1) to match the reusables and fillables on them *only* changing text and comment nodes. They are super lightweight.
+      // 2) then we want to match changes that only change attribute values.
+      // 3) then we want to match changes that only remove or add nodes inside.
+      // 4) then we want to match changes that does as little as possible changes inside their inner templateStamps.
+      // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
+      // * we should do this in iterator way. Same as 1/3/4 is doing.
       for (let fillable of fillables) {
-        fillable.consume(reusable);
-        const stampGroups = fillable.hydrate();
+        const stampGroups = fillable.fillAndHydrate(reusable);
         changedStampGroups.push(...stampGroups);
         fillables.delete(fillable);
         reusables.delete(reusable);
@@ -190,9 +219,8 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
 
     //5. create new stamp instance and hydrate
     for (let fillable of fillables) {
-      const fresh = getInstance(Def);
-      fillable.consume(fresh);
-      const stampGroups = fillable.hydrate();
+      const fresh = new FreshStampInstance(fillable.Def); //Def == fillable.Def
+      const stampGroups = fillable.fillAndHydrate(fresh);
       changedStampGroups.push(...stampGroups);
       fillables.delete(fillable);
     }
@@ -217,9 +245,7 @@ export function renderUnder(root, state) {
       stampGroups.push(StampGroup.make(getDefinition(id), [], start, end));
     rootStampGroups.set(root, stampGroups);
   }
-  debugger
   const changes = stampGroups.map(g => g.update(renderDefValues(state, g.Def))).filter(Boolean);
-
   reuseAndInstantiateIndividualStamps(changes);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
