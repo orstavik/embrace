@@ -16,23 +16,6 @@ function renderDefValues(state, Def) {
   return values;
 }
 
-class FreshStampInstance {
-  #nodes;
-  #start;
-  #end;
-  #value = [];
-  constructor(Def) {
-    const { start, end, innerHydras } = getInstance(Def);
-    this.#nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
-    this.#start = start;
-    this.#end = end;
-  }
-  get start() { return this.#start; }
-  get end() { return this.#end; }
-  get nodes() { return this.#nodes; }
-  get value() { return this.#value; }
-}
-
 class Stamp {
   #group;
   #start;
@@ -51,6 +34,13 @@ class Stamp {
   get value() { return this.#value; }
   get nodes() { return this.#nodes; }
   set value(v) { this.#value = v; }
+
+  fillFresh() {
+    const { start, end, innerHydras } = getInstance(this.#group.Def);
+    const nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
+    const value = [];
+    return this.fillAndHydrate({ start, end, nodes, value });
+  }
 
   fillAndHydrate(otherStamp) {
     this.fill(otherStamp);
@@ -227,9 +217,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
 
     //5. create new stamp instance and hydrate
     for (let fillable of fillables) {
-      const fresh = new FreshStampInstance(fillable.Def); //Def == fillable.Def
-      const stampGroups = fillable.fillAndHydrate(fresh);
-      changedStampGroups.push(...stampGroups);
+      changedStampGroups.push(...fillable.fillFresh());
       fillables.delete(fillable);
     }
 
