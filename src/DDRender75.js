@@ -16,239 +16,210 @@ function renderDefValues(state, Def) {
   return values;
 }
 
-class Pair {
+class Stamp {
+  #group;
   #start;
-  #end;
-  #first;
-  #value = [];
-  #nodes = [];
-  static make(start, end, firstNode) {
-    const n = new Pair();
-    n.#start = start;
-    n.#end = end;
-    n.#first = firstNode;
-    return n;
-  }
-}
-
-class Group {
-  #values = [];
-  #newValues;
-  #Def;
+  #value;
   #nodes;
-  #commas;
-  static make(Def, commas) {
-    const n = new Group();
+
+  constructor(group, start, value) {
+    this.#group = group;
+    this.#start = start;
+    this.#value = value;
+  }
+
+  get start() { return this.#start; }
+  get Def() { return this.#group.Def; }
+  set value(v) { this.#value = v; }
+
+  hydrate(newValue) {
+    if (this.#value == newValue)
+      return;
+    const res = [];
+    for (let i = 0; i < newValue.length; i++) {
+      const { Def, hydra } = this.#group.Def.innerHydras[i];
+      const node = this.#nodes[i];
+      const value = this.#value[i];
+      const newValue = newValue[i];
+      if (newValue == value);
+      else if (Def) res.push(StampGroup.make(Def, node, value, newValue));
+      else node.nodeValue = newValue;
+    }
+    return res;
+  }
+
+  fill(start, end, nodes, values) {
+    if (this.#nodes)
+      throw new Error("Stamp can only be filled once");
+    this.#nodes = nodes;
+    this.#value = values;
+    let target = this.#start;
+    for (let n = start.nextSibling, nextNode; n != end; n = nextNode) {
+      nextNode = n.nextSibling;
+      target.after(n);
+      target = n;
+    }
+  }
+
+  removeMe() {
+    this.#group.removeStamp(this);
+  }
+}
+
+class StampGroup {
+  #values;
+  #stamps;
+  #Def;
+  #newStampsNotFilled;
+  #filledStampsNotUsed;
+  #end;
+
+  get fillables() { return this.#newStampsNotFilled }
+  get reusables() { return this.#filledStampsNotUsed }
+  get Def() { return this.#Def; }
+
+  static make(Def, values, ...commas) {
+    const n = new StampGroup();
     n.#Def = Def;
-    n.#commas = commas;
+    n.#values = values;
+    n.#end = commas.pop();
+    n.#stamps = commas.map(c => new Stamp(n, c));
     return n;
   }
+
+  injectStamp(pos, value) {
+    if (pos == 0 && !this.#values.length) {
+      this.#stamps[0].value = value;
+      return this.#stamps[0];
+    }
+    const oldComment = this.#stamps[pos]?.start ?? this.#end;
+    const newComment = document.createComment("::,");
+    oldComment.before(newComment);
+    if (pos == 0) {
+      newComment.nodeValue = oldComment.nodeValue;
+      oldComment.nodeValue = "::,";
+      newComment.stampGroup = this;
+      oldComment.stampGroup = null;
+    }
+    const newStamp = new Stamp(this, value, newComment);
+    this.#stamps.splice(pos, 0, newStamp);
+    return newStamp;
+  }
+
+  removeStamp(stamp) {
+    const pos = this.#stamps.indexOf(stamp);
+    const endComment = this.#stamps[pos + 1]?.start ?? this.#end;
+    for (let n = stamp.start, next; n != endComment; n = next) {
+      next = n.nextSibling;
+      n.remove();
+    }
+    this.#stamps.splice(pos, 1);
+  }
+
+  update(newValues) {
+    if (this.#values == newValues)
+      return;
+    const unFulfilled = [], filledButNotUsed = [];
+    const diffs = diff(this.#values, newValues);
+    for (let d = 0, a = 0; d < diffs.length; d++) {
+      const { type, x, y, i } = diffs[d]; //i is the number of x or y we need to add.
+      if (type == "match") {
+        ; //do nothing
+      } else if (type == "ins") {
+        for (let c = 0; c < i; c++)
+          unFulfilled.push(this.injectStamp(a + c, newValues[y + c]));
+      } else if (type == "del") {
+        for (let c = 0; c < i; c++)
+          filledButNotUsed.push(this.#stamps[a + c]);
+      }
+      a += i;
+    }
+    this.#newStampsNotFilled = unFulfilled;
+    this.#filledStampsNotUsed = filledButNotUsed;
+    this.#values = newValues;
+    return this;
+  }
 }
 
-//finds all the nodes with the outermost Def (ie. Def added the latest to the Def registry)
-function extractTopDefNodes(nodes) {
-  const Def = nodes.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
-  const topNodes = [], otherNodes = [];
-  for (let n of nodes)
-    n.Def === Def ? topNodes.push(n) : otherNodes.push(n);
-  return { Def, topNodes, otherNodes };
-}
-
-function injectComma(first, position, value, newValue) {
-  const before = first.commas[position - 1];
-  const after = first.commas[position];
-  const c = document.createComment("::,");
-  c.first = first;
-  c.value = value;
-  c.newValue = newValue;
-  c.end = after;
-  before.end = c;
-  after.before(c);
-  first.commas.splice(position, 0, c);
-  return c;
-}
-
-// if the values for the list i the same, we do nothing.
-// we handle special cases for empty arrays, because we need to see the first comma as void.
-// otherwise, we do a diff, so that we get to reuse as much as possible.
-function reuseListLevel(firstNodes) {
-  const toBeAdded = new Set();
-  const toBeReused = new Set();
-  for (let first of firstNodes) {
-    const { commas, values, newValues } = first;
-    if (values == newValues)
-      continue;
-
-    if (!values.length) {            //special case, for empty values
-      first.newValue = newValues[0];
-      toBeAdded.add(first);
-      for (let i = 1; i < newValues.length; i++)
-        toBeAdded.add(injectComma(first, i, [], newValues[i]));
-    } else if (!newValues.length) {  //special case, for empty newValues
-      commas.slice(0, -1).forEach(c => toBeReused.add(c));
-    } else {
-      debugger
-      const diffs = diff(values, newValues);
-      for (let i = 0; i < diffs.length; i++) {
-        const { type, x, y } = diffs[i];
-        const oldV = values[x];
-        const newV = newValues[y];
-        if (type == "match");//do nothing
-        else if (type == "ins") toBeAdded.add(injectComma(first, i, oldV, newV));
-        else if (type == "del") toBeReused.add(commas[i]);
+function reuseAndInstantiateIndividualStamps(changedStampGroups) {
+  const atTheEndNotReused = new Set();
+  const mustBeCleanedUp = new Set();
+  while (changedStampGroups.length) {
+    //1. get fillable and reusable stamps for stampGroup with outermost Def.
+    const Def = changedStampGroups.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
+    const fillables = new Set(), reusables = new Set(), restStampGroups = [];
+    for (let n of changedStampGroups) {
+      if (n.Def === Def) {
+        for (let f of n.fillables) fillables.add(f)
+        for (let r of n.reusables) reusables.add(r)
+      } else {
+        restStampGroups.push(n)
       }
     }
-  }
-  return { toBeAdded, toBeReused };
-}
+    changedStampGroups = restStampGroups;
+    for (let n of reusables)
+      mustBeCleanedUp.add(n.Def);
 
-function moveNodesWithSameValues(toBeAdded, toBeReused) {
-  main: for (let newN of toBeAdded) {
-    for (let oldN of toBeReused) {
-      if (newN.newValue == oldN.value) {
-        moveContent(newN, oldN); //must update the values.
-        toBeReused.delete(oldN);
-        toBeAdded.delete(newN);
-        continue main;
+    //3. for all stamps with same value, move nodes
+    fillIt: for (let fillable of fillables) {
+      for (let reusable of reusables) {
+        if (fillable.value === reusable.value) {
+          debugger;
+          fillable.consume(reusable);
+          fillables.delete(fillable);
+          reusables.delete(reusable);
+          continue fillIt;
+        }
       }
     }
-  }
-  return { toBeAdded, toBeReused };
-}
 
-function hydrate(node, Def) {
-  const newInnerFirstNodes = [];
-  for (let i = 0; i < node.newValue.length; i++) {
-    const newValue = node.newValue[i];
-    const oldValue = node.value[i];
-    if (newValue == oldValue) continue; //we don't hydrate if the value is unchanged.
-    const innerNode = node.nodes[i];
-    const { hydra, Def: innerDef } = Def.innerHydras[i];
-    if (innerDef) {
-      innerNode.newValue = newValue;
-      innerNode.Def = innerDef;
-      //todo here we are making a 
-      newInnerFirstNodes.push(innerNode);
-    } else {
-      innerNode.nodeValue = newValue;
+    //4. reuse and hydrate as many as possible
+    reuseIt: for (let reusable of reusables) {
+      for (let fillable of fillables) {
+        fillable.consume(reusable);
+        const stampGroups = fillable.hydrate();
+        changedStampGroups.push(...stampGroups);
+        fillables.delete(fillable);
+        reusables.delete(reusable);
+        continue reuseIt;
+      }
     }
-  }
-  return newInnerFirstNodes;
-}
 
-function StartNode(start, Def, end) {
-  start.small = Pair.make(Def, [start, end]);
-  start.values = [];
-  start.value = [];
-  start.commas = [start, end];
-  start.commas.forEach(n => n.first = start);
-  start.Def = Def;
-  return start;
-}
+    //4b. here we can try to dig inside the other branches 
+    //    to see if we can find a stamp group with the given Def that we might try to reuse from.
 
-function getInstance2(Def) {
-  const instance = getInstance(Def);
-  const { start, end, innerHydras } = instance;
-  start.nodes = innerHydras.map(({ node }) => node);
-  //what about commas??
-  start.values = [];
-  start.value = [];
-  start.end = end;
-  start.Def = Def;
-  return start;
-}
-
-function moveContent(targetStart, sourceStart) {
-  const body = [];
-  for (let n = sourceStart; n != sourceStart.end; n = n.nextSibling)
-    body.push(n);
-  targetStart.after(...body);
-  targetStart.nodes = sourceStart.nodes;
-}
-
-function reuseNodesOrCreateNewInstancesUsingHydration(Def, nodes, reusableNodes) {
-  const innerFirstNodes = [];
-  const reusables = [...reusableNodes];
-  //todo we can match reusables with nodes much better. If the reusables are equal on the Def only, 
-  //todo then we should use that match, and only do the update on the textNode level.
-  let i = 0;
-  for (let n of nodes) {
-    debugger
-    const oldN = reusables[i++] ?? getInstance2(Def);
-    moveContent(n, oldN);
-    const newInnerFirstNodes = hydrate(n, Def);
-    innerFirstNodes.push(...newInnerFirstNodes);
-    n.value = n.newValue;
-  }
-  return { innerFirstNodes, reusables: reusables.slice(nodes.size) };
-}
-
-function extractAllInnerDefNodes(Def, nodes) {
-  const extras = [];
-  for (let n of nodes) {
-    for (let i = 0; i < n.innerHydras.length; i++) {
-      const { Def: innerDef } = n.innerHydras[i];
-      const innerNode = n.nodes[i];
-      if (innerDef)
-        extras.push(innerNode);
+    //5. create new stamp instance and hydrate
+    for (let fillable of fillables) {
+      const fresh = getInstance(Def);
+      fillable.consume(fresh);
+      const stampGroups = fillable.hydrate();
+      changedStampGroups.push(...stampGroups);
+      fillables.delete(fillable);
     }
-  }
-  return extras;
-}
 
-function reuse(firstNodes) {
-  let allNotUsed = new Set();
-  const extras = []; //todo here we can keep track of extra nodes that we might reuse later if we want.
-  while (firstNodes.length) {
-    //1. all the topNodes will be handled one level in this round.
-    let { Def: nowDef, topNodes: nowTopNodes, otherNodes } = extractTopDefNodes(firstNodes);
-    firstNodes = otherNodes;
-
-    //2. reuse list level
-    const { toBeAdded, toBeReused } = reuseListLevel(nowTopNodes);
-
-    //3. template stamp level
-    const nowDefExtras = extras.filter(n => n.Def == nowDef);
-    const toBeReusedWithExtras = toBeReused.union(new Set(nowDefExtras));
-    moveNodesWithSameValues(toBeAdded, toBeReusedWithExtras);
-
-    //4. try to just move as many of the individual instances as possible.
-    const { innerFirstNodes, reusables } =
-      reuseNodesOrCreateNewInstancesUsingHydration(nowDef, toBeAdded, toBeReusedWithExtras);
-
-    const extraInnerFirstNodes = extractAllInnerDefNodes(nowDef, reusables);
-    allNotUsed = allNotUsed.union(toBeReusedWithExtras);
-    extras.push(...extraInnerFirstNodes);
-
-    firstNodes.push(...innerFirstNodes);
-  } //redo while firstNodes has tasks
-
-  for (let { start, end } of removeables) {
-    const res = [];
-    for (; start != end; start = start.nextSibling)
-      res.push(start);
-    res.push(end);
-    res.forEach(n => n.remove());
+    for (let notReusedStamp of reusables)
+      atTheEndNotReused.add(notReusedStamp.Def);
   }
 
-  reusables = nextReusables;
+  for (let stamp of mustBeCleanedUp)
+    stamp.removeMe();
 }
 
-let rootInstances = new WeakMap();
+let rootStampGroups = new WeakMap();
 export function renderUnder(root, state) {
 
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
-  let rootInstance = rootInstances.get(root);
-  if (!rootInstance) {
-    rootInstance = [];
+  let stampGroups = rootStampGroups.get(root);
+  if (!stampGroups) {
+    stampGroups = [];
     for (let { start, id, end } of findRunnableTemplates(root))
-      rootInstance.push(StartNode(start, getDefinition(id), end));
-    rootInstances.set(root, rootInstance);
+      stampGroups.push(StampGroup.make(getDefinition(id), [], start, end));
+    rootStampGroups.set(root, stampGroups);
   }
-  const firstNodes = rootInstance.map(n =>
-    Object.assign(n, { newValues: renderDefValues(state, n.Def) }));
+  debugger
+  const changes = stampGroups.map(g => g.update(renderDefValues(state, g.Def))).filter(Boolean);
 
-  reuse(firstNodes);
+  reuseAndInstantiateIndividualStamps(changes);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
