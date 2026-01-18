@@ -2,6 +2,18 @@ import { getDefinition, findRunnableTemplates, getInstance } from "./DD7.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
+function moveNodes(first, last, target) {
+  for (let n = first, next; n != last; n = next)
+    next = n.nextSibling, target.after(n), (target = n);
+  target.after(last);
+}
+
+function removeNodes(first, last) {
+  for (let n = first, next; n != last; n = next)
+    next = n.nextSibling, n.remove();
+  last.remove();
+}
+
 const tupleMap = {};
 const tuplify = (obj) => tupleMap[JSON.stringify(obj)] ??= obj;
 
@@ -70,14 +82,7 @@ class Stamp {
     if (this.#nodes)
       throw new Error("Stamp can only be filled once");
     this.#nodes = reusable.nodes;
-    let target = this.#start;
-    for (let n = reusable.start.nextSibling, nextNode; true; n = nextNode) {
-      nextNode = n.nextSibling;
-      target.after(n);
-      target = n;
-      if (n == reusable.last)
-        break;
-    }
+    moveNodes(reusable.start.nextSibling, reusable.last, this.#start);
     reusable.start.remove();  //it doesn't matter if the start is connected or not..
   }
 }
@@ -180,11 +185,8 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     globalNotUsed = globalNotUsed.union(reusables);
   }
 
-  for (let stamp of globalNotUsed) {
-    for (let n = stamp.start, next; n != stamp.last; n = next)
-      next = n.nextSibling, n.remove();
-    stamp.last.remove();
-  }
+  for (let { start, last } of globalNotUsed)
+    removeNodes(start.nextNode, last);
 }
 
 let rootStampGroups = new WeakMap();
