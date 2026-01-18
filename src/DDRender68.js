@@ -136,8 +136,8 @@ class StampGroup {
   }
 }
 
-const ValuesIdentical = (f, r) => f.value === r.value;
-const InnerArraysIdentical = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
+const IdenticalValues = (f, r) => f.value === r.value;
+const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
 function reuseAndInstantiateIndividualStamps(changedStampGroups) {
   let globalNotUsed = new Set();
@@ -158,14 +158,14 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     changedStampGroups = restStampGroups;
 
     //2. fill stamps with reusables with the exact same value.
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, ValuesIdentical))
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, IdenticalValues))
       fillable.fill(reusable);
 
     //2b. here we can dig inside globalNotUsed for stamps with the current Def. 
     //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
 
     //3. ligthWeight matches all with identical inner arrays. These matches will only change (text, comments, attribute).nodeValue
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, InnerArraysIdentical))
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, IdenticalInnerArrays))
       fillable.fill(reusable).hydrate(Def, reusable.value);
 
     //4. heavyWeight. reuse and hydrate complex mismatches
