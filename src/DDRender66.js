@@ -215,11 +215,9 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     //4b. here we can try to dig inside globalNotUsed for stamps with the current Def. 
     //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
 
-    //5. create new stamp instance and hydrate
-    for (let fillable of fillables) {
+    //5. create new stamp instance and hydrate for the rest
+    for (let fillable of fillables)
       changedStampGroups.push(...fillable.fillFresh());
-      fillables.delete(fillable);
-    }
 
     for (let stamp of cleanUp.difference(reusables))
       stamp.removeMe();
