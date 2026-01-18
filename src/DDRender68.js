@@ -129,32 +129,63 @@ class StampGroup {
   }
 }
 
+class UnusedStampsMap {
+  #map = new Map();
+  add(Def, reusables) { this.#map.set(Def, reusables); }
+
+  extractUnusedInnerReusables(Def) {
+    //todo: extract unused stamps with innerDefs
+  }
+
+  *all() {
+    for (let [Def, reusables] of this.#map)
+      yield* reusables;
+  }
+}
+
+class StampMap {
+  #fillables = new Map();
+  #reusables = new Map();
+
+  add(todo) {
+    const { Def, fillables, reusables } = todo;
+    const fs = this.#fillables.get(Def) ?? [];
+    const rs = this.#reusables.get(Def) ?? [];
+    fs.push(...fillables);
+    rs.push(...reusables);
+    this.#fillables.set(Def, fs);
+    this.#reusables.set(Def, rs);
+  }
+
+  addAll(todos) {
+    for (let todo of todos)
+      todo && this.add(todo);
+  }
+
+  extractOutermostDefGroup() {
+    if (!this.#fillables.size)
+      return;
+    const Def = this.#fillables.keys().reduce((a, b) => a.position > b.position ? a : b);
+    const fillables = new Set(this.#fillables.get(Def));
+    const reusables = new Set(this.#reusables.get(Def));
+    this.#fillables.delete(Def);
+    this.#reusables.delete(Def);
+    return { Def, fillables, reusables };
+  }
+}
+
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-//todo 0: update the test so that it checks for identical values(add a list entry first) and reusable values (reverse()).
-//todo 1: turn the todos into a map sorted by Def.
 //todo 2: add the innerDefs as a list to the Def in register
 //todo 3: then find the inner reusables in the globalNotUsed.
 //todo 4: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
 
 function reuseAndInstantiateIndividualStamps(todos) {
-  let globalNotUsed = new Set();
-  while (todos.length) {
-    //1. get fillable and reusable stamps for stampGroup with outermost Def.
-    const Def = todos.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
-    let fillables = [], reusables = [], restTodos = [];
-    for (let n of todos) {
-      if (n.Def === Def) {
-        fillables.push(...n.fillables)
-        reusables.push(...n.reusables)
-      } else {
-        restTodos.push(n)
-      }
-    }
-    fillables = new Set(fillables);
-    reusables = new Set(reusables);
-    todos = restTodos;
+  let globalNotUsed = new UnusedStampsMap();
+  let todo;
+  while (todo = todos.extractOutermostDefGroup()) {
+    const { Def, fillables, reusables } = todo;
 
     //2. fill stamps with reusables with the exact same value.
     for (let { fillable, reusable } of extractMatch(fillables, reusables, IdenticalValues))
@@ -169,17 +200,17 @@ function reuseAndInstantiateIndividualStamps(todos) {
 
     //4. heavyWeight. reuse and hydrate complex mismatches
     for (let { fillable, reusable } of extractMatch(fillables, reusables))
-      todos.push(...fillable.fill(reusable).hydrate(Def, reusable.value));
+      todos.addAll(fillable.fill(reusable).hydrate(Def, reusable.value));
 
     //5. create new stamp instance and hydrate for the rest
     for (let fillable of fillables)
-      todos.push(...fillable.fill(getInstance(Def)).hydrate(Def));
+      todos.addAll(fillable.fill(getInstance(Def)).hydrate(Def));
 
-    globalNotUsed = globalNotUsed.union(reusables);
+    globalNotUsed.add(Def, reusables);
   }
 
-  for (let { start, last } of globalNotUsed)
-    removeNodes(start.nextNode, last);
+  for (let { start, last } of globalNotUsed.all())
+    removeNodes(start, last); //I think it is not start.nextSibling??
 }
 
 let rootStampGroups = new WeakMap();
@@ -193,7 +224,9 @@ export function renderUnder(root, state) {
       stampGroups.push(StampGroup.make(getDefinition(id), start, end));
     rootStampGroups.set(root, stampGroups);
   }
-  const todos = stampGroups.map(g => g.update(renderDefValues(state, g.Def))).filter(Boolean);
+  const todos = new StampMap();
+  todos.addAll(stampGroups.map(g => g.update(renderDefValues(state, g.Def))));
+
   reuseAndInstantiateIndividualStamps(todos);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
