@@ -17,7 +17,7 @@ function removeNodes(first, last) {
 const tupleMap = {};
 const tuplify = (obj) => tupleMap[JSON.stringify(obj)] ??= obj;
 
-function* extractIfMatch(set1, set2, test) {
+function* extractMatch(set1, set2, test) {
   for (let fillable of set1)
     for (let reusable of set2)
       if (!test || test(fillable, reusable)) {
@@ -139,42 +139,42 @@ class StampGroup {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-function reuseAndInstantiateIndividualStamps(changedStampGroups) {
+function reuseAndInstantiateIndividualStamps(todos) {
   let globalNotUsed = new Set();
-  while (changedStampGroups.length) {
+  while (todos.length) {
     //1. get fillable and reusable stamps for stampGroup with outermost Def.
-    const Def = changedStampGroups.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
-    const fillables = new Set(), reusables = new Set(), restStampGroups = [];
-    for (let n of changedStampGroups) {
+    const Def = todos.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
+    const fillables = new Set(), reusables = new Set(), restTodos = [];
+    for (let n of todos) {
       if (n.Def === Def) {
         for (let f of n.fillables) fillables.add(f)
         for (let r of n.reusables) reusables.add(r)
         // n.fillables.clear();
         // n.reusables.clear();
       } else {
-        restStampGroups.push(n)
+        restTodos.push(n)
       }
     }
-    changedStampGroups = restStampGroups;
+    todos = restTodos;
 
     //2. fill stamps with reusables with the exact same value.
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, IdenticalValues))
+    for (let { fillable, reusable } of extractMatch(fillables, reusables, IdenticalValues))
       fillable.fill(reusable);
 
     //2b. here we can dig inside globalNotUsed for stamps with the current Def. 
     //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
 
     //3. ligthWeight matches all with identical inner arrays. These matches will only change (text, comments, attribute).nodeValue
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, IdenticalInnerArrays))
+    for (let { fillable, reusable } of extractMatch(fillables, reusables, IdenticalInnerArrays))
       fillable.fill(reusable).hydrate(Def, reusable.value);
 
     //4. heavyWeight. reuse and hydrate complex mismatches
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables))
-      changedStampGroups.push(...fillable.fill(reusable).hydrate(Def, reusable.value));
+    for (let { fillable, reusable } of extractMatch(fillables, reusables))
+      todos.push(...fillable.fill(reusable).hydrate(Def, reusable.value));
 
     //5. create new stamp instance and hydrate for the rest
     for (let fillable of fillables)
-      changedStampGroups.push(...fillable.fill(getInstance(Def)).hydrate(Def));
+      todos.push(...fillable.fill(getInstance(Def)).hydrate(Def));
 
     globalNotUsed = globalNotUsed.union(reusables);
   }
@@ -194,8 +194,8 @@ export function renderUnder(root, state) {
       stampGroups.push(StampGroup.make(getDefinition(id), start, end));
     rootStampGroups.set(root, stampGroups);
   }
-  const changes = stampGroups.map(g => g.update(renderDefValues(state, g.Def))).filter(Boolean);
-  reuseAndInstantiateIndividualStamps(changes);
+  const todos = stampGroups.map(g => g.update(renderDefValues(state, g.Def))).filter(Boolean);
+  reuseAndInstantiateIndividualStamps(todos);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
