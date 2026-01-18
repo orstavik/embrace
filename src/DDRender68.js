@@ -87,11 +87,6 @@ class StampGroup {
   #end;
   #values;
   #stamps = [];
-  #newStampsNotFilled;
-  #filledStampsNotUsed;
-
-  get fillables() { return this.#newStampsNotFilled }
-  get reusables() { return this.#filledStampsNotUsed }
   get Def() { return this.#Def; }
 
   static make(Def, start, end) {
@@ -108,7 +103,7 @@ class StampGroup {
       newValues = undefined;
     if (this.#values == newValues)
       return;
-    const unFulfilled = [], filledButNotUsed = [], newStamps = [];
+    const fillables = [], reusables = [], newStamps = [];
     const diffs = diff(this.#values ?? [], newValues ?? []);
     for (let { a, b } of diffs) {
       if (b.length == a.length) {
@@ -120,19 +115,17 @@ class StampGroup {
         const stamps = cs.map((c, i) => new Stamp(c, b[i]));
         (this.#stamps[0]?.start ?? this.#end).before(...cs);
         newStamps.push(...stamps);
-        unFulfilled.push(...stamps);
+        fillables.push(...stamps);
       } else if (a.length) {
         //make Stamps reusable, ie. add .last to mark the last node belonging to the stamp.
         for (let i = 0; i < a.length; i++)
           this.#stamps[i].last = (this.#stamps[i + 1]?.start ?? this.#end).previousSibling;
-        filledButNotUsed.push(...this.#stamps.splice(0, a.length));
+        reusables.push(...this.#stamps.splice(0, a.length));
       }
     }
-    this.#newStampsNotFilled = unFulfilled;
-    this.#filledStampsNotUsed = filledButNotUsed;
     this.#values = newValues;
     this.#stamps = newStamps;
-    return this;
+    return { fillables, reusables, Def: this.#Def };
   }
 }
 
@@ -144,17 +137,17 @@ function reuseAndInstantiateIndividualStamps(todos) {
   while (todos.length) {
     //1. get fillable and reusable stamps for stampGroup with outermost Def.
     const Def = todos.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
-    const fillables = new Set(), reusables = new Set(), restTodos = [];
+    let fillables = [], reusables = [], restTodos = [];
     for (let n of todos) {
       if (n.Def === Def) {
-        for (let f of n.fillables) fillables.add(f)
-        for (let r of n.reusables) reusables.add(r)
-        // n.fillables.clear();
-        // n.reusables.clear();
+        fillables.push(...n.fillables)
+        reusables.push(...n.reusables)
       } else {
         restTodos.push(n)
       }
     }
+    fillables = new Set(fillables);
+    reusables = new Set(reusables);
     todos = restTodos;
 
     //2. fill stamps with reusables with the exact same value.
