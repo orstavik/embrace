@@ -142,8 +142,7 @@ class StampGroup {
 }
 
 function reuseAndInstantiateIndividualStamps(changedStampGroups) {
-  const atTheEndNotReused = new Set();
-  const mustBeCleanedUp = new Set();
+  let globalNotUsed = new Set();
   while (changedStampGroups.length) {
     //1. get fillable and reusable stamps for stampGroup with outermost Def.
     const Def = changedStampGroups.map(({ Def }) => Def).reduce((a, b) => a.position > b.position ? a : b);
@@ -152,13 +151,14 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       if (n.Def === Def) {
         for (let f of n.fillables) fillables.add(f)
         for (let r of n.reusables) reusables.add(r)
+        // n.fillables.clear();
+        // n.reusables.clear();
       } else {
         restStampGroups.push(n)
       }
     }
     changedStampGroups = restStampGroups;
-    for (let n of reusables)
-      mustBeCleanedUp.add(n.Def);
+    const cleanUp = new Set(reusables);
 
     //3. for all stamps with same value, move nodes
     fillIt: for (let fillable of fillables) {
@@ -185,8 +185,8 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       }
     }
 
-    //4b. here we can try to dig inside the other branches 
-    //    to see if we can find a stamp group with the given Def that we might try to reuse from.
+    //4b. here we can try to dig inside globalNotUsed for stamps with the current Def. 
+    //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
 
     //5. create new stamp instance and hydrate
     for (let fillable of fillables) {
@@ -197,11 +197,12 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       fillables.delete(fillable);
     }
 
-    for (let notReusedStamp of reusables)
-      atTheEndNotReused.add(notReusedStamp.Def);
+    for (let stamp of cleanUp.difference(reusables))
+      stamp.removeMe();
+    globalNotUsed = globalNotUsed.union(reusables);
   }
 
-  for (let stamp of mustBeCleanedUp)
+  for (let stamp of globalNotUsed)
     stamp.removeMe();
 }
 
