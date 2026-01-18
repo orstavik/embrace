@@ -29,7 +29,6 @@ class Stamp {
   }
 
   get start() { return this.#start; }
-  get end() { return this.#group.getEndNode(this); }
   get Def() { return this.#group.Def; }
   get value() { return this.#value; }
   get nodes() { return this.#nodes; }
@@ -51,13 +50,9 @@ class Stamp {
       const oldValue = otherStamp.value?.[i];
       if (oldValue != value) {
         if (Def) {
-          let stampGroup = start.stampGroup;
-          if (!stampGroup)
-            stampGroup = StampGroup.make(Def, start, end);
-
-          const change = stampGroup.update(value);
-          if (change)
-            res.push(change);
+          start.stampGroup ??= StampGroup.make(Def, start, end);
+          const change = start.stampGroup.update(value);
+          change && res.push(change);
         } else
           start.nodeValue = value;
       }
@@ -90,10 +85,6 @@ class StampGroup {
   #end;
   #start;
 
-  getEndNode(stamp) {
-    return this.#stamps[this.#stamps.indexOf(stamp) + 1]?.start ?? this.#end;
-  }
-
   get fillables() { return this.#newStampsNotFilled }
   get reusables() { return this.#filledStampsNotUsed }
   get Def() { return this.#Def; }
@@ -108,13 +99,13 @@ class StampGroup {
   }
 
   update(newValues) {
-    if (this.#values == newValues || (!this.#values?.length && !newValues?.length))
+    if (!newValues?.length)
+      newValues = undefined;
+    if (this.#values == newValues)
       return;
     const unFulfilled = [], filledButNotUsed = [], newStamps = [];
     const diffs = diff(this.#values ?? [], newValues ?? []);
-    //x is the position in newValues, i is the number of matches/ins/dels.
-    for (let x of diffs) {
-      const { a, b } = x;
+    for (let { a, b } of diffs) {
       if (b.length == a.length) {
         if (a == b)
           debugger; //if this is ok, then we can remove the length check
@@ -198,8 +189,11 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     globalNotUsed = globalNotUsed.union(reusables);
   }
 
-  for (let stamp of globalNotUsed)
-    stamp.removeMe();
+  for (let stamp of globalNotUsed) {
+    for (let n = stamp.start, next; n != stamp.last; n = next)
+      next = n.nextSibling, n.remove();
+    stamp.last.remove();
+  }
 }
 
 let rootStampGroups = new WeakMap();
