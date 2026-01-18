@@ -58,7 +58,6 @@ class Stamp {
       const { start, end } = this.#nodes[i];
       const value = this.#value[i];
       const oldValue = otherStamp.value[i];
-      debugger;
       if (oldValue != value) {
         if (Def) res.push(StampGroup.make(Def, value, start, end));
         else start.nodeValue = value;
