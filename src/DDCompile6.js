@@ -78,6 +78,9 @@ export function compile(rootNode, motherScript, DollarDotsPath) {
 const hash = new URL(import.meta.url).hash?.slice(1);
 if (hash) {
   const sp = Object.fromEntries(new URLSearchParams(hash));
-  const { qs = "body", dd = new URL("./DD6.js", import.meta.url), id = "DollarDotsCompile" } = sp;
-  compile(document.getElementById(qs), document.getElementById(id), dd);
+  compile(
+    document.querySelector(sp.qs ?? "body"),
+    document.getElementById(sp.id ?? "DollarDotsCompile"),
+    new URL(sp.dd ?? "./DD6.js", import.meta.url)
+  );
 }
