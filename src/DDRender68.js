@@ -5,6 +5,16 @@ import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@2
 const tupleMap = {};
 const tuplify = (obj) => tupleMap[JSON.stringify(obj)] ??= obj;
 
+function* extractIfMatch(set1, set2, test) {
+  for (let fillable of set1)
+    for (let reusable of set2)
+      if (!test || test(fillable, reusable)) {
+        set1.delete(fillable), set2.delete(reusable);
+        yield { fillable, reusable };
+        break;
+      }
+}
+
 function renderDefValues(state, Def) {
   const $ = Object.assign(state instanceof Array ? [] : {}, state);
   const values = [];
@@ -124,19 +134,6 @@ class StampGroup {
     this.#values = newValues;
     this.#stamps = newStamps;
     return this;
-  }
-}
-
-function* extractIfMatch(fillables, reusables, test) {
-  for (let fillable of fillables) {
-    for (let reusable of reusables) {
-      if (!test || test(fillable, reusable)) {
-        fillables.delete(fillable);
-        reusables.delete(reusable);
-        yield { fillable, reusable };
-        break;
-      }
-    }
   }
 }
 
