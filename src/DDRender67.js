@@ -108,7 +108,7 @@ class StampGroup {
   }
 
   update(newValues) {
-    if (this.#values == newValues)
+    if (this.#values == newValues || (!this.#values?.length && !newValues?.length))
       return;
     const unFulfilled = [], filledButNotUsed = [], newStamps = [];
     const diffs = diff(this.#values ?? [], newValues ?? []);
@@ -126,11 +126,10 @@ class StampGroup {
         newStamps.push(...stamps);
         unFulfilled.push(...stamps);
       } else if (a.length) {
-        //we need to preserve .lastCopiable node when Stamp is made reusable
-        const removables = this.#stamps.splice(0, a.length);
-        for (let i = 0; i < removables.length; i++)
-          removables[i].last = (removables[i + 1]?.start ?? this.#stamps?.[0]?.start ?? this.#end).previousSibling;
-        filledButNotUsed.push(...removables);
+        //make Stamps reusable, ie. add .last to mark the last node belonging to the stamp.
+        for (let i = 0; i < a.length; i++)
+          this.#stamps[i].last = (this.#stamps[i + 1]?.start ?? this.#end).previousSibling;
+        filledButNotUsed.push(...this.#stamps.splice(0, a.length));
       }
     }
     this.#newStampsNotFilled = unFulfilled;
