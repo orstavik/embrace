@@ -38,18 +38,17 @@ class Stamp {
   fillFresh() {
     const { start, end, innerHydras } = getInstance(this.#group.Def);
     const nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
-    const value = [];
-    return this.fillAndHydrate({ start, end, nodes, value });
+    return this.fillAndHydrate({ start, last: end.previousSibling, nodes });
   }
 
   fillAndHydrate(otherStamp) {
     this.fill(otherStamp);
     const res = [];
-    for (let i = 0; i < this.#value.length; i++) {
+    for (let i = 0; i < this.#nodes.length; i++) {
       const { Def, hydra } = this.#group.Def.innerHydras[i];
       const { start, end } = this.#nodes[i];
-      const value = this.#value[i];
-      const oldValue = otherStamp.value[i];
+      const value = this.#value?.[i];
+      const oldValue = otherStamp.value?.[i];
       if (oldValue != value) {
         if (Def) {
           let stampGroup = start.stampGroup;
@@ -66,26 +65,25 @@ class Stamp {
     return res;
   }
 
-  fill(otherStamp) {
+  fill(reusable) {
     if (this.#nodes)
       throw new Error("Stamp can only be filled once");
-    this.#nodes = otherStamp.nodes;
+    this.#nodes = reusable.nodes;
     let target = this.#start;
-    for (let n = otherStamp.start.nextSibling, nextNode; n != otherStamp.end; n = nextNode) {
+    for (let n = reusable.start.nextSibling, nextNode; true; n = nextNode) {
       nextNode = n.nextSibling;
       target.after(n);
       target = n;
+      if (n == reusable.last)
+        break;
     }
-  }
-
-  removeMe() {
-    this.#group.removeStamp(this);
+    reusable.start.remove();  //it doesn't matter if the start is connected or not..
   }
 }
 
 class StampGroup {
   #values;
-  #stamps;
+  #stamps = [];
   #Def;
   #newStampsNotFilled;
   #filledStampsNotUsed;
@@ -103,64 +101,42 @@ class StampGroup {
   static make(Def, start, end) {
     const n = new StampGroup();
     n.#Def = Def;
-    n.#values = [];
     n.#end = end;
     n.#start = start;
-    n.#stamps = [];//commas.map(c => new Stamp(n, c, []));
     n.#start.stampGroup = n; //todo this is spaghettish..
     return n;
-  }
-
-  #injectStamp(pos, value) {
-    // if (pos == 0 && !this.#values.length) {
-    //   this.#stamps[0].value = value;
-    //   return this.#stamps[0];
-    // }
-    const oldComment = this.#stamps[pos]?.start ?? this.#end;
-    const newComment = document.createComment("::,");
-    oldComment.before(newComment);
-    // if (pos == 0) {
-    //   newComment.nodeValue = oldComment.nodeValue;
-    //   oldComment.nodeValue = "::,";
-    //   newComment.stampGroup = this;
-    //   oldComment.stampGroup = null;
-    // }
-    const newStamp = new Stamp(this, newComment, value ?? []);
-    this.#stamps.splice(pos, 0, newStamp);
-    return newStamp;
-  }
-
-  removeStamp(stamp) {
-    const pos = this.#stamps.indexOf(stamp);
-    const endComment = this.#stamps[pos + 1]?.start ?? this.#end;
-    for (let n = stamp.start, next; n != endComment; n = next) {
-      next = n.nextSibling;
-      n.remove();
-    }
-    this.#stamps.splice(pos, 1);
   }
 
   update(newValues) {
     if (this.#values == newValues)
       return;
-    const unFulfilled = [], filledButNotUsed = [];
-    const diffs = diff(this.#values, newValues);
-    for (let d = 0, a = 0; d < diffs.length; d++) {
-      const { type, x, y, i } = diffs[d]; //i is the number of x or y we need to add.
-      if (type == "match") {
-        ; //do nothing
-      } else if (type == "ins") {
-        for (let c = 0; c < i; c++)
-          unFulfilled.push(this.#injectStamp(a + c, newValues[x + c]));
-      } else if (type == "del") {
-        for (let c = 0; c < i; c++)
-          filledButNotUsed.push(this.#stamps[a + c]);
+    const unFulfilled = [], filledButNotUsed = [], newStamps = [];
+    const diffs = diff(this.#values ?? [], newValues ?? []);
+    //x is the position in newValues, i is the number of matches/ins/dels.
+    for (let x of diffs) {
+      const { a, b } = x;
+      if (b.length == a.length) {
+        if (a == b)
+          debugger; //if this is ok, then we can remove the length check
+        newStamps.push(...this.#stamps.splice(0, a.length));
+      } else if (b.length) {
+        const cs = b.map(_ => document.createComment("::,"));
+        const stamps = cs.map((c, i) => new Stamp(this, c, b[i]));
+        (this.#stamps[0]?.start ?? this.#end).before(...cs);
+        newStamps.push(...stamps);
+        unFulfilled.push(...stamps);
+      } else if (a.length) {
+        //we need to preserve .lastCopiable node when Stamp is made reusable
+        const removables = this.#stamps.splice(0, a.length);
+        for (let i = 0; i < removables.length; i++)
+          removables[i].last = (removables[i + 1]?.start ?? this.#stamps?.[0]?.start ?? this.#end).previousSibling;
+        filledButNotUsed.push(...removables);
       }
-      a += i;
     }
     this.#newStampsNotFilled = unFulfilled;
     this.#filledStampsNotUsed = filledButNotUsed;
     this.#values = newValues;
+    this.#stamps = newStamps;
     return this;
   }
 }
@@ -182,7 +158,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       }
     }
     changedStampGroups = restStampGroups;
-    const cleanUp = new Set(reusables);
+    // const cleanUp = new Set(reusables);
 
     //3. for all stamps with same value, move nodes
     fillIt: for (let fillable of fillables) {
@@ -206,8 +182,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
       // * we should do this in iterator way. Same as 1/3/4 is doing.
       for (let fillable of fillables) {
-        const stampGroups = fillable.fillAndHydrate(reusable);
-        changedStampGroups.push(...stampGroups);
+        changedStampGroups.push(...fillable.fillAndHydrate(reusable));
         fillables.delete(fillable);
         reusables.delete(reusable);
         continue reuseIt;
@@ -221,8 +196,6 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     for (let fillable of fillables)
       changedStampGroups.push(...fillable.fillFresh());
 
-    for (let stamp of cleanUp.difference(reusables))
-      stamp.removeMe();
     globalNotUsed = globalNotUsed.union(reusables);
   }
 
