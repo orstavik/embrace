@@ -74,3 +74,10 @@ export function compile(rootNode, motherScript, DollarDotsPath) {
     if (n.end && !n.id)
       _compile(n, script);
 }
+
+const hash = new URL(import.meta.url).hash?.slice(1);
+if (hash) {
+  const sp = Object.fromEntries(new URLSearchParams(hash));
+  const { qs = "body", dd = new URL("./DD6.js", import.meta.url), id = "DollarDotsCompile" } = sp;
+  compile(document.getElementById(qs), document.getElementById(id), dd);
+}

@@ -132,6 +132,12 @@ class StampGroup {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
+//todo 0: update the test so that it checks for identical values(add a list entry first) and reusable values (reverse()).
+//todo 1: turn the todos into a map sorted by Def.
+//todo 2: add the innerDefs as a list to the Def in register
+//todo 3: then find the inner reusables in the globalNotUsed.
+//todo 4: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
+
 function reuseAndInstantiateIndividualStamps(todos) {
   let globalNotUsed = new Set();
   while (todos.length) {
