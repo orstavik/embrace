@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD7.js";
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD6.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
@@ -52,20 +52,13 @@ class Stamp {
   get value() { return this.#value; }
   get nodes() { return this.#nodes; }
 
-  fillFresh(Def) {
-    const { start, end, innerHydras } = getInstance(Def);
-    const nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
-    return this.fillAndHydrate({ start, last: end.previousSibling, nodes }, Def);
-  }
-
-  fillAndHydrate(otherStamp, Def) {
-    this.fill(otherStamp);
+  hydrate(Def, prevValue) {
     const res = [];
     for (let i = 0; i < this.#nodes.length; i++) {
       const { Def: insideDef, hydra } = Def.innerHydras[i];
       const { start, end } = this.#nodes[i];
       const value = this.#value?.[i];
-      const oldValue = otherStamp.value?.[i];
+      const oldValue = prevValue?.[i];
       if (oldValue != value) {
         if (insideDef) {
           start.stampGroup ??= StampGroup.make(insideDef, start, end);
@@ -84,6 +77,7 @@ class Stamp {
     this.#nodes = reusable.nodes;
     moveNodes(reusable.start.nextSibling, reusable.last, this.#start);
     reusable.start.remove();  //it doesn't matter if the start is connected or not..
+    return this;
   }
 }
 
@@ -172,15 +166,15 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
 
     //3. ligthWeight matches all with identical inner arrays. These matches will only change (text, comments, attribute).nodeValue
     for (let { fillable, reusable } of extractIfMatch(fillables, reusables, InnerArraysIdentical))
-      fillable.fillAndHydrate(reusable, Def);
+      fillable.fill(reusable).hydrate(Def, reusable.value);
 
     //4. heavyWeight. reuse and hydrate complex mismatches
     for (let { fillable, reusable } of extractIfMatch(fillables, reusables))
-      changedStampGroups.push(...fillable.fillAndHydrate(reusable, Def));
+      changedStampGroups.push(...fillable.fill(reusable).hydrate(Def, reusable.value));
 
     //5. create new stamp instance and hydrate for the rest
     for (let fillable of fillables)
-      changedStampGroups.push(...fillable.fillFresh(Def));
+      changedStampGroups.push(...fillable.fill(getInstance(Def)).hydrate(Def));
 
     globalNotUsed = globalNotUsed.union(reusables);
   }
