@@ -29,7 +29,6 @@ class Stamp {
   get start() { return this.#start; }
   get value() { return this.#value; }
   get nodes() { return this.#nodes; }
-  set value(v) { this.#value = v; }
 
   fillFresh(Def) {
     const { start, end, innerHydras } = getInstance(Def);
@@ -74,13 +73,13 @@ class Stamp {
 }
 
 class StampGroup {
+  #Def;
+  #start;
+  #end;
   #values;
   #stamps = [];
-  #Def;
   #newStampsNotFilled;
   #filledStampsNotUsed;
-  #end;
-  #start;
 
   get fillables() { return this.#newStampsNotFilled }
   get reusables() { return this.#filledStampsNotUsed }
@@ -128,6 +127,19 @@ class StampGroup {
   }
 }
 
+function* extractIfMatch(fillables, reusables, test) {
+  for (let fillable of fillables) {
+    for (let reusable of reusables) {
+      if (!test || test(fillable, reusable)) {
+        fillables.delete(fillable);
+        reusables.delete(reusable);
+        yield { fillable, reusable };
+        break;
+      }
+    }
+  }
+}
+
 function reuseAndInstantiateIndividualStamps(changedStampGroups) {
   let globalNotUsed = new Set();
   while (changedStampGroups.length) {
@@ -145,39 +157,23 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       }
     }
     changedStampGroups = restStampGroups;
-    // const cleanUp = new Set(reusables);
 
-    //3. for all stamps with same value, move nodes
-    fillIt: for (let fillable of fillables) {
-      for (let reusable of reusables) {
-        if (fillable.value === reusable.value) {
-          fillable.fill(reusable);
-          fillables.delete(fillable);
-          reusables.delete(reusable);
-          continue fillIt;
-        }
-      }
-    }
+    //2. fill stamps with reusables with the exact same value.
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, (f, r) => f.value === r.value))
+      fillable.fill(reusable);
 
-    //4. reuse and hydrate as many as possible
-    reuseIt: for (let reusable of reusables) {
-      //todo here we can try to match fillables and reusables to find matches that only differ in text nodes, 
-      // todo we want 1) to match the reusables and fillables on them *only* changing text and comment nodes. They are super lightweight.
-      // 2) then we want to match changes that only change attribute values.
-      // 3) then we want to match changes that only remove or add nodes inside.
-      // 4) then we want to match changes that does as little as possible changes inside their inner templateStamps.
-      // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
-      // * we should do this in iterator way. Same as 1/3/4 is doing.
-      for (let fillable of fillables) {
-        changedStampGroups.push(...fillable.fillAndHydrate(reusable, Def));
-        fillables.delete(fillable);
-        reusables.delete(reusable);
-        continue reuseIt;
-      }
-    }
-
-    //4b. here we can try to dig inside globalNotUsed for stamps with the current Def. 
+    //2b. here we can dig inside globalNotUsed for stamps with the current Def. 
     //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
+
+    // 1) to match the reusables and fillables on them *only* changing text and comment nodes. They are super lightweight.
+    // 2) then we want to match changes that only change attribute values.
+    // 3) then we want to match changes that only remove or add nodes inside.
+    // 4) then we want to match changes that does as little as possible changes inside their inner templateStamps.
+    // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
+
+    //4. reuse and hydrate complex different groups
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables))
+      changedStampGroups.push(...fillable.fillAndHydrate(reusable, Def));
 
     //5. create new stamp instance and hydrate for the rest
     for (let fillable of fillables)
