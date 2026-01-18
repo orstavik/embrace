@@ -140,6 +140,9 @@ function* extractIfMatch(fillables, reusables, test) {
   }
 }
 
+const ValuesIdentical = (f, r) => f.value === r.value;
+const InnerArraysIdentical = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
+
 function reuseAndInstantiateIndividualStamps(changedStampGroups) {
   let globalNotUsed = new Set();
   while (changedStampGroups.length) {
@@ -159,19 +162,17 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     changedStampGroups = restStampGroups;
 
     //2. fill stamps with reusables with the exact same value.
-    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, (f, r) => f.value === r.value))
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, ValuesIdentical))
       fillable.fill(reusable);
 
     //2b. here we can dig inside globalNotUsed for stamps with the current Def. 
     //    The Def of the stamps can use an innerDefs to filter for relevance more quickly.
 
-    // 1) to match the reusables and fillables on them *only* changing text and comment nodes. They are super lightweight.
-    // 2) then we want to match changes that only change attribute values.
-    // 3) then we want to match changes that only remove or add nodes inside.
-    // 4) then we want to match changes that does as little as possible changes inside their inner templateStamps.
-    // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
+    //3. ligthWeight matches all with identical inner arrays. These matches will only change (text, comments, attribute).nodeValue
+    for (let { fillable, reusable } of extractIfMatch(fillables, reusables, InnerArraysIdentical))
+      fillable.fillAndHydrate(reusable, Def);
 
-    //4. reuse and hydrate complex different groups
+    //4. heavyWeight. reuse and hydrate complex mismatches
     for (let { fillable, reusable } of extractIfMatch(fillables, reusables))
       changedStampGroups.push(...fillable.fillAndHydrate(reusable, Def));
 
