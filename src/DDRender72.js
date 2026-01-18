@@ -151,29 +151,49 @@ function setupInnerDefs(Def) {
   return Def.innerDefs = [...new Set(res)];
 }
 
-export function renderUnder(root, state) {
-  //if we don't have a function for this root, then we need to make one.
-  //we make the function finding the runnable template nodes.
-  //this root function is then fixed so that next time we need to run it,
-  //we renderDefValues and then we reuse it.
-  //the function is essentially a innerHydra list with a set of start end nodes.
-  //then what the f.. do we do here?
-
-  const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
+function setupInitialRootTask(root) {
   const tasks = [];
-  const removeables = [];
-  for (let task of findRunnableTemplates(root)) {
-    const Def = getDefinition(task.id);
+  for (let { id, commas } of findRunnableTemplates(root)) {
+    const Def = getDefinition(id);
     setupInnerDefs(Def);
-
-    const defValues = renderDefValues(state, Def);
-    const newTasks = splitTask(defValues, task.start, task.end);
-    // const { tasks: newTasks, removeables: newRemoveables } = splitTask(defValues, task.start, task.end);
-    tasks.push(...newTasks);
-    // removeables.push(newRemoveables);
+    tasks.push({ Def, commas, values: [] });
   }
+  return { innerHydras: tasks }; //{Def, commas, values, (nextValues)}
+}
 
-  reuse(tasks, removeables);
+//only adds comma if needed
+//and then splits into tasks
+function splitTask2(Def, commas, values, nextValues) {
+  if (nextValues.length > (commas.length - 1)) {
+    const xtra = Array(nextValues.length - (commas.length - 1)).fill(document.createComment("::,"));
+    const end = commas.pop();
+    commas.push(...xtra, end);
+    end.before(...xtra);
+  }
+  return nextValues.map((defValue, i) => {
+    debugger
+    return ({ Def, start: commas[i], end: commas[i + 1], oldValues: values[i], values: defValue })
+  });
+}
+
+//the cleanup task is different. We need to remember a start+end and commaCount.
+//once all is done, then we can delete all the extra commas at the end.
+//or. we change the task object during the reuse/render. and then we save that completed task.
+//and this completed task, that is what we use to delete the extra commas.
+//we can simply spool the output tasks, see how many extra commas there are, and then just move them.
+//so, we only add commas inside reuse
+const rootToTasks = new WeakMap();
+export function renderUnder(root, state) {
+  const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
+  let previousTask = rootToTasks.get(root);
+  !previousTask && rootToTasks.set(root, previousTask = setupInitialRootTask(root));
+
+  const nextTopTask = { ...previousTask };
+  debugger
+  nextTopTask.innerHydras = previousTask.innerHydras.map(({ Def, commas, values }) =>
+    splitTask2(Def, commas, values, renderDefValues(state, Def)));
+  const didTasks = reuse(nextTopTask.innerHydras);
+  //removeNodesNoLongerNeededFromDidTasks
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
