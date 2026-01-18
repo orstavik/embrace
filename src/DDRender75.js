@@ -48,6 +48,8 @@ class Stamp {
   get start() { return this.#start; }
   get end() { return this.#group.getEndNode(this); }
   get Def() { return this.#group.Def; }
+  get value() { return this.#value; }
+  get nodes() { return this.#nodes; }
   set value(v) { this.#value = v; }
 
   fillAndHydrate(otherStamp) {
@@ -63,6 +65,7 @@ class Stamp {
           let stampGroup = start.stampGroup;
           if (!stampGroup)
             stampGroup = StampGroup.make(Def, [], start, end);
+
           const change = stampGroup.update(value);
           if (change)
             res.push(change);
@@ -111,12 +114,12 @@ class StampGroup {
     n.#Def = Def;
     n.#values = values;
     n.#end = commas.pop();
-    n.#stamps = commas.map(c => new Stamp(n, c));
+    n.#stamps = commas.map(c => new Stamp(n, c, []));
     commas[0].stampGroup = n; //todo this is spaghettish..
     return n;
   }
 
-  injectStamp(pos, value) {
+  #injectStamp(pos, value) {
     if (pos == 0 && !this.#values.length) {
       this.#stamps[0].value = value;
       return this.#stamps[0];
@@ -130,7 +133,7 @@ class StampGroup {
       newComment.stampGroup = this;
       oldComment.stampGroup = null;
     }
-    const newStamp = new Stamp(this, newComment, value);
+    const newStamp = new Stamp(this, newComment, value ?? []);
     this.#stamps.splice(pos, 0, newStamp);
     return newStamp;
   }
@@ -156,7 +159,7 @@ class StampGroup {
         ; //do nothing
       } else if (type == "ins") {
         for (let c = 0; c < i; c++)
-          unFulfilled.push(this.injectStamp(a + c, newValues[y + c]));
+          unFulfilled.push(this.#injectStamp(a + c, newValues[x + c]));
       } else if (type == "del") {
         for (let c = 0; c < i; c++)
           filledButNotUsed.push(this.#stamps[a + c]);
