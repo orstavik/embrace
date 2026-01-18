@@ -51,7 +51,7 @@ class Stamp {
   set value(v) { this.#value = v; }
 
   fillAndHydrate(otherStamp) {
-    this.fill(otherStamp.start, otherStamp.end, otherStamp.nodes);
+    this.fill(otherStamp);
     const res = [];
     for (let i = 0; i < this.#value.length; i++) {
       const { Def, hydra } = this.#group.Def.innerHydras[i];
@@ -59,21 +59,26 @@ class Stamp {
       const value = this.#value[i];
       const oldValue = otherStamp.value[i];
       if (oldValue != value) {
-        if (Def) res.push(StampGroup.make(Def, value, start, end));
-        else start.nodeValue = value;
+        if (Def) {
+          let stampGroup = start.stampGroup;
+          if (!stampGroup)
+            stampGroup = StampGroup.make(Def, [], start, end);
+          const change = stampGroup.update(value);
+          if (change)
+            res.push(change);
+        } else
+          start.nodeValue = value;
       }
     }
     return res;
   }
 
-  //todo the fill should use the other stamp. Not the start, end, nodes. It should look stamp like.
-
-  fill(start, end, nodes) {
+  fill(otherStamp) {
     if (this.#nodes)
       throw new Error("Stamp can only be filled once");
-    this.#nodes = nodes;
+    this.#nodes = otherStamp.nodes;
     let target = this.#start;
-    for (let n = start.nextSibling, nextNode; n != end; n = nextNode) {
+    for (let n = otherStamp.start.nextSibling, nextNode; n != otherStamp.end; n = nextNode) {
       nextNode = n.nextSibling;
       target.after(n);
       target = n;
@@ -107,6 +112,7 @@ class StampGroup {
     n.#values = values;
     n.#end = commas.pop();
     n.#stamps = commas.map(c => new Stamp(n, c));
+    commas[0].stampGroup = n; //todo this is spaghettish..
     return n;
   }
 
@@ -187,7 +193,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
     fillIt: for (let fillable of fillables) {
       for (let reusable of reusables) {
         if (fillable.value === reusable.value) {
-          fillable.consume(reusable);
+          fillable.fill(reusable);
           fillables.delete(fillable);
           reusables.delete(reusable);
           continue fillIt;
