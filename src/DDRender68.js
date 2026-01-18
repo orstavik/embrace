@@ -17,40 +17,37 @@ function renderDefValues(state, Def) {
 }
 
 class Stamp {
-  #group;
   #start;
   #value;
   #nodes;
 
-  constructor(group, start, value) {
-    this.#group = group;
+  constructor(start, value) {
     this.#start = start;
     this.#value = value;
   }
 
   get start() { return this.#start; }
-  get Def() { return this.#group.Def; }
   get value() { return this.#value; }
   get nodes() { return this.#nodes; }
   set value(v) { this.#value = v; }
 
-  fillFresh() {
-    const { start, end, innerHydras } = getInstance(this.#group.Def);
+  fillFresh(Def) {
+    const { start, end, innerHydras } = getInstance(Def);
     const nodes = innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }));
-    return this.fillAndHydrate({ start, last: end.previousSibling, nodes });
+    return this.fillAndHydrate({ start, last: end.previousSibling, nodes }, Def);
   }
 
-  fillAndHydrate(otherStamp) {
+  fillAndHydrate(otherStamp, Def) {
     this.fill(otherStamp);
     const res = [];
     for (let i = 0; i < this.#nodes.length; i++) {
-      const { Def, hydra } = this.#group.Def.innerHydras[i];
+      const { Def: insideDef, hydra } = Def.innerHydras[i];
       const { start, end } = this.#nodes[i];
       const value = this.#value?.[i];
       const oldValue = otherStamp.value?.[i];
       if (oldValue != value) {
-        if (Def) {
-          start.stampGroup ??= StampGroup.make(Def, start, end);
+        if (insideDef) {
+          start.stampGroup ??= StampGroup.make(insideDef, start, end);
           const change = start.stampGroup.update(value);
           change && res.push(change);
         } else
@@ -112,7 +109,7 @@ class StampGroup {
         newStamps.push(...this.#stamps.splice(0, a.length));
       } else if (b.length) {
         const cs = b.map(_ => document.createComment("::,"));
-        const stamps = cs.map((c, i) => new Stamp(this, c, b[i]));
+        const stamps = cs.map((c, i) => new Stamp(c, b[i]));
         (this.#stamps[0]?.start ?? this.#end).before(...cs);
         newStamps.push(...stamps);
         unFulfilled.push(...stamps);
@@ -172,7 +169,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
       // * we should be able to see this just by looking at the signature of the values. If their inner arrays are the same, then we null that.
       // * we should do this in iterator way. Same as 1/3/4 is doing.
       for (let fillable of fillables) {
-        changedStampGroups.push(...fillable.fillAndHydrate(reusable));
+        changedStampGroups.push(...fillable.fillAndHydrate(reusable, Def));
         fillables.delete(fillable);
         reusables.delete(reusable);
         continue reuseIt;
@@ -184,7 +181,7 @@ function reuseAndInstantiateIndividualStamps(changedStampGroups) {
 
     //5. create new stamp instance and hydrate for the rest
     for (let fillable of fillables)
-      changedStampGroups.push(...fillable.fillFresh());
+      changedStampGroups.push(...fillable.fillFresh(Def));
 
     globalNotUsed = globalNotUsed.union(reusables);
   }
