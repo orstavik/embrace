@@ -72,7 +72,7 @@
     </div>
 
     <!-- The compiled template code will be injected here by compile() -->
-    <script type="module" id="DollarDotsCompile"></script>
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
 
     <script type="module">
         import { compile } from "/src/DDCompile6.js";
@@ -103,6 +103,7 @@
                 const footerTxt = await (await fetch('./footer.html?t=' + Date.now())).text();
 
                 // 3. Inject templates into placeholders inside #app
+                debugger;
                 document.getElementById('header').innerHTML = headerTxt;
                 document.getElementById('footer').innerHTML = footerTxt;
 
