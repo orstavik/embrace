@@ -88,6 +88,7 @@ class StampGroup {
   #values;
   #stamps = [];
   get Def() { return this.#Def; }
+  get stamps() { return this.#stamps; }
 
   static make(Def, start, end) {
     const n = new StampGroup();
@@ -127,42 +128,33 @@ class StampGroup {
     this.#stamps = newStamps;
     return { fillables, reusables, Def: this.#Def };
   }
-
-  reuseAll() {
-    const res = this.#stamps;
-    this.#stamps = [];
-    return res;
-  }
 }
 
 class UnusedStampsMap {
   #map = new Map();
   add(Def, reusables) { this.#map.set(Def, reusables); }
 
-  static resolveNestedStampGroups(nodePositions, result, i, stampGroup) {
-    const nodeIs = nodePositions[i];
-    if (nodeIs == undefined) {
-      result.push(...stampGroup.reuseAll());
-      return;
-    }
-    for (let nodeI of nodeIs) {
-      const nextStampGroup = stampGroup.nodes[nodeI].stampGroup;
-      UnusedStampsMap.resolveNestedStampGroups(nodePositions, result, i + 1, nextStampGroup);
+  static resolveNestedStamps(nodePositions, i, stamp, result) {
+    for (let nodeIs of nodePositions[i]) {
+      for (let nodeI of nodeIs) {
+        const groupNode = stamp.nodes[nodeI];
+        const stampGroup = groupNode.stampGroup;
+        if (nodeIs.length === 1)
+          result.push(...stampGroup.stamps);
+        else
+          for (let innerStamp of stampGroup.stamps)
+            UnusedStampsMap.resolveNestedStamps(nodePositions, i + 1, innerStamp, result);
+      }
     }
   }
 
-  extractUnusedInnerReusables(Def) {
+  extractUnusedInnerReusables(targetDef) {
     const res = [];
-    for (let [outerDef, startNodes] of this.#map.entries()) {
-      for (let startNode of startNodes) {
-        if (outerDef.innerDefs.has(Def)) {
-          const nodePositions = outerDef.innerDefs.get(Def);
-          for (let nodeI of nodePositions) {
-            const groupNode = startNode.nodes[nodeI];
-            UnusedStampsMap.resolveNestedStampGroups(nodePositions, res, 1, groupNode.stampGroup);
-          }
-        }
-      }
+    for (let [outerDef, stamps] of this.#map.entries()) {
+      const nodePositions = outerDef.innerDefs.get(targetDef);
+      if (nodePositions != null)
+        for (let stamp of stamps)
+          UnusedStampsMap.resolveNestedStamps(nodePositions, 0, stamp, res);
     }
     return res;
   }
