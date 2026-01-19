@@ -2,17 +2,6 @@
 import POJO from "./POJO.js";
 import { register, findDollarDots } from "./DD6.js";
 
-const MotherScripts = new WeakSet();
-function setupMotherScript(motherScript, path) {
-  if (MotherScripts.has(motherScript))
-    return motherScript;
-  MotherScripts.add(motherScript);
-  motherScript.type = "module";
-  motherScript.id = "DollarDotsDefinition";
-  motherScript.textContent = `import { register } from "${path}";\n\n`;
-  return motherScript;
-}
-
 function pathFunction(start) {
   const res = [];
   if (start instanceof Attr) {
@@ -64,23 +53,38 @@ function _updateAndRegisterScript(motherScript, template) {
   register(template);
 }
 
-export function compile(rootNode, motherScript, DollarDotsPath) {
+export function compile(rootNode, motherScript) {
   if (!(rootNode instanceof Node))
     throw new Error("rootNode must be a DOM node");
   if (!(motherScript instanceof HTMLScriptElement))
     throw new Error("motherScript must be a <script> element");
-  const script = setupMotherScript(motherScript, DollarDotsPath);
+  const res = [];
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
-      _compile(n, script);
+      res.push(_compile(n, motherScript));
+  return res;
+}
+export function compileString(txt, motherScript) {
+  const tmpl = document.createElement("template");
+  tmpl.innerHTML = `<!--:: ; -->${txt}<!--::-->`;
+  return compile(tmpl.content, motherScript)[0];
 }
 
-const hash = new URL(import.meta.url).hash?.slice(1);
-if (hash) {
+(function autoCompile() {
+  const id = "DollarDotsDefinition";
+  if (document.getElementById(id))
+    return; //we have already setup the motherScript, then we don't autocompile
+  const hash = new URL(import.meta.url).hash?.slice(1);
+  if (!hash)
+    return;
   const sp = Object.fromEntries(new URLSearchParams(hash));
-  compile(
-    document.querySelector(sp.qs ?? "body"),
-    document.getElementById(sp.id ?? "DollarDotsCompile"),
-    new URL(sp.dd ?? "./DD6.js", import.meta.url)
-  );
-}
+  const compileScript = document.getElementById(sp.id ?? "DollarDotsCompile");
+  if (!compileScript) //if there is no script to compile anymore, then we assume we have already run.
+    return;
+  compileScript.type = "module";
+  compileScript.id = id;
+  const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
+  compileScript.textContent = `import { register } from "${path}";\n\n`;
+  const root = document.querySelector(sp.qs ?? "body");
+  compile(root, compileScript);
+})();

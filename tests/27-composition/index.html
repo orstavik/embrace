@@ -34,31 +34,14 @@
             color: #94a3b8;
             font-size: 1.25rem;
         }
-
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0f172a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s;
-        }
     </style>
 </head>
 
 <body>
 
     <div id="app">
-        <!--:: ; -->
-        <div id="loading" class="loading">Composing page...</div>
-
         <div id="header"></div>
-
+        <!--:: ; -->
         <main id="main">
             <h1>${$.content.title}</h1>
             <p class="desc">${$.content.description}</p>
@@ -67,7 +50,7 @@
                 This central area is rendered from the template inside <code>index.html</code>.
             </div>
         </main>
-
+        <!--:: -->
         <div id="footer"></div>
     </div>
 
@@ -75,7 +58,7 @@
     <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
 
     <script type="module">
-        import { compile } from "/src/DDCompile6.js";
+        import { compileString } from "/src/DDCompile6.js";
         import { renderUnder } from "/src/DDRender61.js";
 
         // 1. Data
@@ -96,43 +79,18 @@
         };
 
         async function init() {
-            try {
-                // 2. Load external fragments
-                // We use timestamps to bust cache for dev
-                const headerTxt = await (await fetch('./header.html?t=' + Date.now())).text();
-                const footerTxt = await (await fetch('./footer.html?t=' + Date.now())).text();
+            const headerTxt = await (await fetch('./header.html?t=' + Date.now())).text();
+            const footerTxt = await (await fetch('./footer.html?t=' + Date.now())).text();
 
-                // 3. Inject templates into placeholders inside #app
-                debugger;
-                document.getElementById('header').innerHTML = headerTxt;
-                document.getElementById('footer').innerHTML = footerTxt;
+            let motherScript;
+            while (!(motherScript = document.getElementById("DollarDotsDefinition")))
+                await new Promise(resolve => requestAnimationFrame(resolve));
+            const header = compileString(headerTxt, motherScript);
+            const footer = compileString(footerTxt, motherScript);
+            document.getElementById('header').innerHTML = `<!--:: ${header.id}--><!--::-->`;
+            document.getElementById('footer').innerHTML = `<!--:: ${footer.id}--><!--::-->`;
 
-                // 4. Compile the entire #app
-                const app = document.getElementById("app");
-                const motherScript = document.getElementById("DollarDotsCompile");
-                console.log("Compiling...");
-
-                // We need to pass a URL object/string for DD6.js path used in the generated code
-                compile(app, motherScript, "/src/DD6.js");
-
-                // 5. Render
-                console.log("Rendering...");
-                renderUnder(app, data);
-
-                // Hide loader
-                const loader = document.getElementById('loading');
-                if (loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.remove(), 500);
-                }
-
-                console.log("Page composition complete.");
-
-            } catch (err) {
-                console.error("Composition failed:", err);
-                const loader = document.getElementById('loading');
-                if (loader) loader.textContent = "Error loading fragments: " + err.message;
-            }
+            renderUnder(document.getElementById("app"), data);
         }
 
         init();
