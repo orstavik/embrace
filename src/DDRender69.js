@@ -71,12 +71,12 @@ class Stamp {
     return res;
   }
 
-  fill(reusable) {
+  fill({ start, last, nodes }) {
     if (this.#nodes)
       throw new Error("Stamp can only be filled once");
-    this.#nodes = reusable.nodes;
-    moveNodes(reusable.start.nextSibling, reusable.last, this.#start);
-    reusable.start.remove();  //it doesn't matter if the start is connected or not..
+    this.#nodes = nodes;
+    moveNodes(start.nextSibling, last, this.#start);
+    start.remove();  //it doesn't matter if the start is connected or not..
     return this;
   }
 }
@@ -127,25 +127,31 @@ class StampGroup {
     this.#stamps = newStamps;
     return { fillables, reusables, Def: this.#Def };
   }
-}
 
-function resolveNestedStampGroups(nodePositions, result, i, stampGroup) {
-  const nodeI = nodePositions[i];
-  if (nodeI == undefined)
-    return result.push(...stampGroup.stamps);
-  const nextStampGroup = stampGroup.nodes[nodeI].stampGroup;
-  return resolveNestedStampGroups(nodePositions, result, i + 1, nextStampGroup);
+  reuseAll() {
+    const res = this.#stamps;
+    this.#stamps = [];
+    return res;
+  }
 }
 
 class UnusedStampsMap {
   #map = new Map();
   add(Def, reusables) { this.#map.set(Def, reusables); }
 
+  static resolveNestedStampGroups(nodePositions, result, i, stampGroup) {
+    const nodeI = nodePositions[i];
+    if (nodeI == undefined)
+      return result.push(...stampGroup.reuseAll());
+    const nextStampGroup = stampGroup.nodes[nodeI].stampGroup;
+    return UnusedStampsMap.resolveNestedStampGroups(nodePositions, result, i + 1, nextStampGroup);
+  }
+
   extractUnusedInnerReusables(Def, topStartNode) {
     const res = [];
     for (let outerDef of this.#map.keys())
       if (outerDef.innerDefs.has(Def))
-        resolveNestedStampGroups(outerDef.innerDefs.get(Def), res, 0, topStartNode.stampGroup);
+        UnusedStampsMap.resolveNestedStampGroups(outerDef.innerDefs.get(Def), res, 0, topStartNode.stampGroup);
     return res;
   }
 
@@ -193,8 +199,10 @@ class StampMap {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-//todo 2: add the innerDefs as a Map Def => innerDef: [nodePosition, nodePosition, ...] This leads us from stampGroup to stampGroup.
-//todo 3: then find the inner reusables in the globalNotUsed.
+//todo 0: class for the Def. Call it TT as in TemplateType.
+//todo 1: fix the /test folder.
+//todo 2: make the simple Renderer follow the same logic.
+//todo 3: fix all the rest of the tests
 //todo 4: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
 
 function reuseAndInstantiateIndividualStamps(todos) {
