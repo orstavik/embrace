@@ -100,8 +100,12 @@
         <div class="loading">Loading router...</div>
     </main>
 
+    <!-- Placeholder for Compiled template modules -->
+    <script type="module" id="DollarDotsCompile"></script>
+
     <script type="module">
-        import { embrace } from "../../src/v26x.js";
+        import { compile } from "/src/DDCompile6.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         let appData = {};
         const viewRoot = document.getElementById('view');
@@ -112,40 +116,59 @@
         };
 
         async function fetchTemplate(url) {
-            console.log(url);
-            const resp = await fetch(url);
+            // Bust cache for dev
+            const resp = await fetch(url + '?t=' + Date.now());
+            if (!resp.ok) throw new Error("File not found");
             const html = await resp.text();
             return html;
         }
 
         async function router() {
-            console.log('router');
             let path = window.location.hash.slice(1) || '/';
-            const templateUrl = routes[path] || routes['/'];
+            // handle root slash issue if any
+            if (path === "") path = "/";
+
+            const templateUrl = routes[path];
 
             // Update active nav links
             document.querySelectorAll('nav a').forEach(a => {
-                a.classList.toggle('active', a.getAttribute('href') === `#${path}`);
+                const href = a.getAttribute('href');
+                const cleanHref = href.startsWith('#') ? href.slice(1) : href;
+                // Exact match or handle default
+                let isActive = cleanHref === path;
+                if (path === '/' && cleanHref === '/') isActive = true;
+
+                a.classList.toggle('active', isActive);
             });
+
+            if (!templateUrl) {
+                viewRoot.innerHTML = `<div style="color: #ef4444">404 - Page Not Found</div>`;
+                return;
+            }
 
             viewRoot.innerHTML = '<div class="loading">Loading page...</div>';
 
             try {
                 const template = await fetchTemplate(templateUrl);
-                console.log(template);
 
-                // CRITICAL: Clear existing embrace state to allow re-render on the same element
-                delete viewRoot.__embrace;
+                // Inject the template HTML (which contains DollarDots syntax)
                 viewRoot.innerHTML = template;
-                console.log(viewRoot);
-                embrace(viewRoot, appData);
+
+                // Compile the new content
+                // We use the existing mother script element to append definitions
+                const motherScript = document.getElementById("DollarDotsCompile");
+                compile(viewRoot, motherScript, "/src/DD6.js");
+
+                // Render the data into the view
+                renderUnder(viewRoot, appData);
+
             } catch (err) {
+                console.error(err);
                 viewRoot.innerHTML = `<div style="color: #ef4444">Error loading page: ${err.message}</div>`;
             }
         }
 
         async function init() {
-            console.log('init');
             appData = {
                 "site": {
                     "title": "Embrace Router",
@@ -162,7 +185,9 @@
             };
 
             window.addEventListener('hashchange', router);
-            router(); // Initial route
+
+            // Handle initial load
+            await router();
         }
 
         init();

@@ -45,8 +45,7 @@
             gap: 20px;
         }
 
-        /* Styling the Custom Element shadow-less content */
-        embrace-user-card {
+        .user-card {
             display: block;
             background: #1e293b;
             border: 1px solid #334155;
@@ -55,7 +54,7 @@
             transition: border-color 0.3s;
         }
 
-        embrace-user-card:hover {
+        .user-card:hover {
             border-color: #38bdf8;
         }
 
@@ -93,33 +92,49 @@
 </head>
 
 <body>
-    <h1>Components & Code Splitting</h1>
+    <div id="app">
+        <!--:: ; -->
+        <h1>Components & Code Splitting</h1>
 
-    <div class="controls">
-        <p style="margin-bottom: 15px;">Click the button to <strong>dynamically import</strong> the component logic and
-            render the cards.</p>
-        <button id="loadBtn">Load Components (Dynamic Import)</button>
+        <div class="controls">
+            <p style="margin-bottom: 15px;">Click the button to load and render the cards (mimicking async load).</p>
+            <button id="loadBtn">Load Components</button>
+        </div>
+
+        <div id="container" class="component-grid">
+            <!--:: for($.user of $.users) -->
+            <div class="user-card">
+                <div class="avatar-circle">${$.user.avatar}</div>
+                <h3>${$.user.name}</h3>
+                <div class="role">${$.formatRole($.user.role)}</div>
+                <p>${$.user.bio}</p>
+            </div>
+            <!--::-->
+        </div>
     </div>
 
-    <div id="container" class="component-grid">
-        <!-- Components will be injected here -->
-    </div>
-
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        const loadBtn = document.getElementById('loadBtn');
-        const container = document.getElementById('container');
+        import { renderUnder } from "/src/DDRender61.js";
 
-        loadBtn.addEventListener('click', async () => {
+        // Initial State
+        const data = {
+            users: [],
+            formatRole: (role) => role ? role.toUpperCase() : ""
+        };
+
+        const appEl = document.getElementById("app");
+        renderUnder(appEl, data);
+
+        const loadBtn = document.getElementById('loadBtn');
+
+        loadBtn.addEventListener('click', () => {
             loadBtn.disabled = true;
             loadBtn.textContent = "Loading...";
 
-            try {
-                // 1. Code Splitting: Dynamically import the component module
-                const { EmbraceUserCard } = await import('./user-card.js');
-
-                // 2. Fetch data
-                // 2. Load data
-                const users = [
+            // Simulate async loading
+            setTimeout(() => {
+                data.users = [
                     {
                         "id": 1,
                         "name": "Alice Smith",
@@ -136,34 +151,9 @@
                     }
                 ];
 
-                // 3. Create component instances
-                users.forEach(userData => {
-                    const card = document.createElement('embrace-user-card');
-
-                    // We inject the template into the component instance.
-                    // This allows the component to be truly reusable with different templates if needed.
-                    card.innerHTML = `
-                        <template>
-                            <div class="avatar-circle">{{avatar}}</div>
-                            <h3>{{name}}</h3>
-                            <div class="role">{{formatRole(role)}}</div>
-                            <p>{{bio}}</p>
-                        </template>
-                    `;
-
-                    // The component's 'data' setter triggers the embrace() call
-                    card.data = userData;
-
-                    container.appendChild(card);
-                });
-
                 loadBtn.textContent = "Components Loaded";
-                console.log("Successfully loaded and rendered components via code splitting.");
-            } catch (err) {
-                console.error("Failed to load component:", err);
-                loadBtn.disabled = false;
-                loadBtn.textContent = "Error: Try Again";
-            }
+                renderUnder(appEl, data);
+            }, 500);
         });
     </script>
 </body>

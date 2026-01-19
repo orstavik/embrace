@@ -1,9 +1,7 @@
-<template>
-    <div class="page">
-        <h2>Welcome Home, {{user.name}}!</h2>
-        <p>This is the <strong>Home Page</strong> fragment, loaded dynamically via the router.</p>
-        <div style="margin-top: 20px; padding: 15px; background: #1e293b; border-radius: 8px;">
-            Current Mode: {{stats.mode}}
-        </div>
+<div class="page">
+    <h2>Welcome Home, ${$.user.name}!</h2>
+    <p>This is the <strong>Home Page</strong> fragment, loaded dynamically via the router.</p>
+    <div style="margin-top: 20px; padding: 15px; background: #1e293b; border-radius: 8px;">
+        Current Mode: ${$.stats.mode}
     </div>
-</template>
+</div>

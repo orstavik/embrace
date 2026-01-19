@@ -52,84 +52,89 @@
 </head>
 
 <body>
-    <div id="loading" class="loading">Composing page...</div>
 
-    <div id="header"></div>
+    <div id="app">
+        <!--:: ; -->
+        <div id="loading" class="loading">Composing page...</div>
 
-    <main id="main">
-        <template>
-            <h1>{{content.title}}</h1>
-            <p class="desc">{{content.description}}</p>
+        <div id="header"></div>
+
+        <main id="main">
+            <h1>${$.content.title}</h1>
+            <p class="desc">${$.content.description}</p>
             <div
                 style="margin-top: 40px; padding: 20px; background: #1e293b; border-radius: 12px; border: 1px dashed #334155;">
                 This central area is rendered from the template inside <code>index.html</code>.
             </div>
-        </template>
-    </main>
+        </main>
 
-    <div id="footer"></div>
+        <div id="footer"></div>
+    </div>
+
+    <!-- The compiled template code will be injected here by compile() -->
+    <script type="module" id="DollarDotsCompile"></script>
 
     <script type="module">
-        import { embrace } from "../../src/v26x.js";
+        import { compile } from "/src/DDCompile6.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
-        async function fetchFragment(url) {
-            const resp = await fetch(url);
-            const html = await resp.text();
-            // Create a temporary container to parse the fragment
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            return div.querySelector('template');
-        }
+        // 1. Data
+        const data = {
+            "siteName": "Embrace Framework",
+            "userName": "Lojith",
+            "year": 2026,
+            "nav": [
+                "Home",
+                "Components",
+                "Docs",
+                "About"
+            ],
+            "content": {
+                "title": "Module Composition",
+                "description": "This page is built from three separate HTML files bound together at runtime."
+            }
+        };
 
-        async function compose() {
+        async function init() {
             try {
-                // 1. Load shared data
-                const data = {
-                    "siteName": "Embrace Framework",
-                    "userName": "Lojith",
-                    "year": 2026,
-                    "nav": [
-                        "Home",
-                        "Components",
-                        "Docs",
-                        "About"
-                    ],
-                    "content": {
-                        "title": "Module Composition",
-                        "description": "This page is built from three separate HTML files bound together at runtime."
-                    }
-                };
-
                 // 2. Load external fragments
-                const headerTemplate = await fetchFragment('./header.html');
-                const footerTemplate = await fetchFragment('./footer.html');
+                // We use timestamps to bust cache for dev
+                const headerTxt = await (await fetch('./header.html?t=' + Date.now())).text();
+                const footerTxt = await (await fetch('./footer.html?t=' + Date.now())).text();
 
-                // 3. Inject templates into roots
-                const headerRoot = document.getElementById('header');
-                const footerRoot = document.getElementById('footer');
-                const mainRoot = document.getElementById('main');
+                // 3. Inject templates into placeholders inside #app
+                document.getElementById('header').innerHTML = headerTxt;
+                document.getElementById('footer').innerHTML = footerTxt;
 
-                headerRoot.appendChild(headerTemplate);
-                footerRoot.appendChild(footerTemplate);
+                // 4. Compile the entire #app
+                const app = document.getElementById("app");
+                const motherScript = document.getElementById("DollarDotsCompile");
+                console.log("Compiling...");
 
-                // 4. Bind together using embrace()
-                // Each call treats its target independently but shares the data object
-                embrace(headerRoot, data);
-                embrace(mainRoot, data);
-                embrace(footerRoot, data);
+                // We need to pass a URL object/string for DD6.js path used in the generated code
+                compile(app, motherScript, "/src/DD6.js");
+
+                // 5. Render
+                console.log("Rendering...");
+                renderUnder(app, data);
 
                 // Hide loader
-                document.getElementById('loading').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading').remove(), 500);
+                const loader = document.getElementById('loading');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                }
 
                 console.log("Page composition complete.");
+
             } catch (err) {
                 console.error("Composition failed:", err);
-                document.getElementById('loading').textContent = "Error loading fragments.";
+                const loader = document.getElementById('loading');
+                if (loader) loader.textContent = "Error loading fragments: " + err.message;
             }
         }
 
-        compose();
+        init();
     </script>
 </body>
 
