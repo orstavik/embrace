@@ -18,14 +18,14 @@
 
   setTimeout(_ => {
     renderUnder(document.getElementById("app"), [{ a: "gamma" }, { a: "delta", b: "delta2" }]);
-  }, 2000);
+  }, 1000);
 
   setTimeout(_ => {
     renderUnder(document.getElementById("app"), [{ a: "delta", b: "delta2" }, { a: "epsilon" }]);
-  }, 4000);
+  }, 2000);
 
   setTimeout(_ => {
     renderUnder(document.getElementById("app"), [{ a: "epsilon" }]);
-  }, 6000);
+  }, 3000);
 
 </script>

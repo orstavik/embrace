@@ -15,7 +15,7 @@ function removeNodes(first, last) {
 }
 
 const tupleMap = {};
-const tuplify = (obj) => tupleMap[JSON.stringify(obj)] ??= obj;
+const tuplify = obj => (!obj || typeof obj !== 'object') ? obj : (tupleMap[JSON.stringify(obj)] ??= obj);
 
 function* extractMatch(set1, set2, test) {
   for (let fillable of set1)
@@ -33,7 +33,7 @@ function renderDefValues(state, Def) {
   Def.hydra($, function run() {
     const innerValues = Def.innerHydras.map(inner =>
       inner.Def ? renderDefValues($, inner.Def) : inner.hydra($));
-    values.push(tuplify(innerValues));
+    values.push(tuplify(innerValues.map(tuplify)));
   });
   return values;
 }
@@ -204,11 +204,13 @@ class StampMap {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-//todo 0: class for the Def. Call it TT as in TemplateType.
-//todo 1: fix the /test folder.
+//-1: we need to fix the first path being from the start node, not the parent. or.. do we? nah. we don't. since we are using nodePos, and not the path.
+//todo 0: class for the Def. Call it StampType.
+//todo 1: make a test for the extractUnusedInnerReusables(Def). This will require reuse of common template ids.
+//        this is actually a little tricky. We can reuse the same dom if the insides of the templates are identical, 
+//        regardless of the if and for. This means that we actually would like the start and end nodes not be part of the same system.
 //todo 2: make the simple Renderer follow the same logic.
-//todo 3: fix all the rest of the tests
-//todo 4: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
+//todo 3: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
 
 function reuseAndInstantiateIndividualStamps(todos) {
   let globalNotUsed = new UnusedStampsMap();
