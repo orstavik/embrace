@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>24 - Modal Detail Demo</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --accent: #38bdf8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 40px;
+            margin: 0;
+        }
+
+        h1 {
+            color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .card p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--accent);
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0 0;
+        }
+
+        li {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            color: #cbd5e1;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <header>
+                <h1>{{series[0].title}}</h1>
+                <p>{{series[0].shortText}} (by {{producer}})</p>
+            </header>
+
+            <div class="grid">
+                <template for="s of series[0].seasons">
+                    <div class="card" data-index="{{#s}}">
+                        <h3>{{s.title}}</h3>
+                        <p>{{s.episodes.length}} Episodes</p>
+                    </div>
+                </template>
+            </div>
+
+            <template if="selectedSeason">
+                <div class="modal-overlay" data-action="close">
+                    <div class="modal-content">
+                        <button class="modal-close" data-action="close">&times;</button>
+                        <h2>{{selectedSeason.title}}</h2>
+                        <p>Detailed Episode List:</p>
+                        <ul>
+                            <template for="ep of selectedSeason.episodes">
+                                <li>{{ep}}</li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        let appData = {
+            "series": [
+                {
+                    "type": "series",
+                    "title": "Batman The Series",
+                    "shortText": "nanananana batman.",
+                    "seasons": [
+                        {
+                            "type": "season",
+                            "title": "Hjelp! Batman",
+                            "episodes": [
+                                "episode_pilot"
+                            ]
+                        },
+                        {
+                            "type": "season",
+                            "title": "Hjelp! Bat2",
+                            "episodes": [
+                                "episode_new-beginning",
+                                "episode_the-dark-knight-rises"
+                            ]
+                        },
+                        {
+                            "type": "season",
+                            "title": "Wat will be",
+                            "episodes": [
+                                "episode_whatever",
+                                "episode_whatever-batman-does"
+                            ]
+                        },
+                        {
+                            "type": "season",
+                            "title": "Hjelp! Wat!",
+                            "episodes": [
+                                "episode_wat",
+                                "episode_what-the-hell"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "producer": "DC Comics",
+            "selectedSeason": null
+        };
+        const appEl = document.getElementById("app");
+
+        // Event Delegation
+        appEl.addEventListener("click", (e) => {
+            const card = e.target.closest(".card");
+            const closeAction = e.target.closest("[data-action='close']");
+            const modalContent = e.target.closest(".modal-content");
+
+            if (closeAction) {
+                appData.selectedSeason = null;
+                render();
+            } else if (card) {
+                const index = card.getAttribute("data-index");
+                appData.selectedSeason = appData.series[0].seasons[index];
+                render();
+            }
+        });
+
+        function render() {
+            embrace(appEl, appData);
+        }
+
+        render();
+    </script>
+</body>
+
+</html>

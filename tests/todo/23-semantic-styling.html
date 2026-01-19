@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>23 - Semantic Styling (No Classes)</title>
+    <style>
+        /* Base styles using element selectors */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 40px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: #38bdf8;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* Container styling using descendant selectors */
+        section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Card styling using article element */
+        article {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 24px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        article h2 {
+            font-size: 1.25rem;
+            margin: 0;
+            color: #f8fafc;
+        }
+
+        article p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0;
+            padding-left: 12px;
+            border-left: 2px solid #334155;
+            font-style: italic;
+        }
+
+        article strong {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6366f1;
+        }
+
+        /* Status-based styling using attribute selectors */
+        article[data-status="published"] {
+            border-top: 4px solid #22c55e;
+        }
+
+        article[data-status="draft"] {
+            border-top: 4px solid #f59e0b;
+        }
+
+        article[data-status="archived"] {
+            border-top: 4px solid #64748b;
+            opacity: 0.7;
+        }
+
+        /* Badge using data attributes */
+        article::after {
+            content: attr(data-status);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.65rem;
+            background: #334155;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #475569;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <main>
+                <header>
+                    <h1>{{title}}</h1>
+                </header>
+
+                <section>
+                    <template for="item of articles">
+                        <article data-status="{{item.status}}">
+                            <strong>{{item.category}}</strong>
+                            <h2>{{item.title}}</h2>
+                            <p>{{item.excerpt}}</p>
+                        </article>
+                    </template>
+                </section>
+
+                <footer>
+                    <p>Demo showing styling via <code>[data-status]</code> and semantic elements.</p>
+                </footer>
+            </main>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        const data = {
+            "title": "Article Dashboard",
+            "articles": [
+                {
+                    "id": 1,
+                    "title": "Introduction to Embrace",
+                    "category": "Documentation",
+                    "status": "published",
+                    "excerpt": "Learn the basics of our lightweight template engine."
+                },
+                {
+                    "id": 2,
+                    "title": "Advanced Selectors",
+                    "category": "Tutorial",
+                    "status": "draft",
+                    "excerpt": "Master CSS selectors for semantic styling."
+                },
+                {
+                    "id": 3,
+                    "title": "Performance Optimization",
+                    "category": "Documentation",
+                    "status": "published",
+                    "excerpt": "Best practices for high-performance templates."
+                },
+                {
+                    "id": 4,
+                    "title": "Future Roadmap",
+                    "category": "News",
+                    "status": "archived",
+                    "excerpt": "What's coming next in the 2026 releases."
+                }
+            ]
+        };
+        embrace(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

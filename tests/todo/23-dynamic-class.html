@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>23 - Dynamic Classes (Feature Demo)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --border: #334155;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --primary: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Test Classes */
+        .is-completed {
+            border-left: 5px solid var(--success);
+        }
+
+        .is-high-priority {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        .is-pending {
+            border-left: 5px solid var(--warning);
+            opacity: 0.7;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .italic {
+            font-style: italic;
+        }
+
+        .tag-primary {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .feature-badge {
+            background: var(--success);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <template>
+            <h1>{{title}}</h1>
+
+            <section class="card">
+                <h2>1. Ternary Operator Approach</h2>
+                <div class="feature-badge">Feature: Conditional classes via ternaries</div>
+                <template for="t of tasks">
+                    <div
+                        class="card {{ t.isCompleted ? 'is-completed' : '' }} {{ t.priority === 'High' ? 'is-high-priority' : '' }}">
+                        {{t.name}} - {{t.status}}
+                    </div>
+                </template>
+            </section>
+
+            <section class="card">
+                <h2>2. Array Syntax (Manual Join)</h2>
+                <div class="feature-badge">Feature: Use .join(' ') for space-separation</div>
+                <div class="card {{classList.join(' ')}}">
+                    This text should be BOLD and ITALIC.
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>4. Dynamic Object (Manual Conversion)</h2>
+                <div class="feature-badge">Feature: Use Object.entries and filter/map/join</div>
+                <div class="card {{Object.entries(classObj).join(' ')}}">
+                    This uses an inline object-to-class-list conversion.
+                </div>
+            </section>
+
+            <!-- this comment is not getting ignored -->
+            <!-- <section class="card">
+                <h2>4. Dynamic Object (Manual Conversion)</h2>
+                <div class="feature-badge">Feature: Use Object.entries and filter/map/join</div>
+                <div class="card {{Object.entries(classObj).filter(i=>i[1]).map(i=>i[0]).join(' ')}}">
+                    This uses an inline object-to-class-list conversion.
+                </div>
+            </section> -->
+
+            <section class="card">
+                <h2>5. Mixed Static and Dynamic</h2>
+                <div class="feature-badge">Feature: Correctly joins with space even when mixed</div>
+                <div class="card tag-{{ { primary: true, secondary: false } }} bold">
+                    This should have classes: card, tag-primary, and bold.
+                </div>
+            </section>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        const data = {
+            "title": "23 - Dynamic Classes",
+            "tasks": [
+                {
+                    "name": "Interpolation Regex Fix",
+                    "status": "Ready",
+                    "isCompleted": true,
+                    "priority": "High"
+                },
+                {
+                    "name": "Dynamic Object (Manual Conversion)",
+                    "status": "Ready",
+                    "isCompleted": true,
+                    "priority": "Low"
+                },
+                {
+                    "name": "Execution Order Fix",
+                    "status": "In Progress",
+                    "isCompleted": false,
+                    "priority": "Medium"
+                },
+                {
+                    "name": "Dynamic Classes Feature",
+                    "status": "Pending",
+                    "isCompleted": false,
+                    "priority": "Low"
+                }
+            ],
+            "classObj": {
+                "tag-primary": true,
+                "tag-secondary": false,
+                "active": true
+            },
+            "classList": [
+                "bold",
+                "italic"
+            ]
+        };
+        embrace(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

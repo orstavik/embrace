@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>21 - Table Demo</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+            --row-hover: #2d3748;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            padding: 40px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #1e293b;
+            padding: 16px 24px;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9375rem;
+            color: var(--text-main);
+            transition: background 0.2s;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--row-hover);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .status-away {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+        }
+
+        .status-offline {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .role-icon {
+            color: var(--accent);
+            margin-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <template>
+            <h1>{{title}}</h1>
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for="emp of employees">
+                            <tr>
+                                <td>#{{emp.id}}</td>
+                                <td style="font-weight: 600;">{{emp.name}}</td>
+                                <td style="color: var(--text-muted);">{{emp.email}}</td>
+                                <td>{{emp.role}}</td>
+                                <td>
+                                    <span class="status-badge status-{{emp.status}}">
+                                        {{emp.status}}
+                                    </span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        const data = {
+            "title": "Employee Directory",
+            "employees": [
+                {
+                    "id": 1,
+                    "name": "Alice Johnson",
+                    "email": "alice@example.com",
+                    "role": "Developer",
+                    "status": "active"
+                },
+                {
+                    "id": 2,
+                    "name": "Bob Smith",
+                    "email": "bob@example.com",
+                    "role": "Designer",
+                    "status": "away"
+                },
+                {
+                    "id": 3,
+                    "name": "Charlie Brown",
+                    "email": "charlie@example.com",
+                    "role": "Manager",
+                    "status": "offline"
+                },
+                {
+                    "id": 4,
+                    "name": "Diana Prince",
+                    "email": "diana@example.com",
+                    "role": "Developer",
+                    "status": "active"
+                },
+                {
+                    "id": 5,
+                    "name": "Ethan Hunt",
+                    "email": "ethan@example.com",
+                    "role": "Security",
+                    "status": "active"
+                }
+            ]
+        };
+        embrace(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>
