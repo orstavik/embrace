@@ -101,10 +101,10 @@
     </main>
 
     <!-- Placeholder for Compiled template modules -->
-    <script type="module" id="DollarDotsCompile"></script>
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=body&dd=/src/DD6.js&id=DollarDotsCompile"></script>
 
     <script type="module">
-        import { compile } from "/src/DDCompile6.js";
+        import { compileString } from "/src/DDCompile6.js";
         import { renderUnder } from "/src/DDRender61.js";
 
         let appData = {};
@@ -151,13 +151,15 @@
             try {
                 const template = await fetchTemplate(templateUrl);
 
-                // Inject the template HTML (which contains DollarDots syntax)
-                viewRoot.innerHTML = template;
+                let motherScript;
+                while (!(motherScript = document.getElementById("DollarDotsDefinition")))
+                    await new Promise(resolve => requestAnimationFrame(resolve));
 
-                // Compile the new content
-                // We use the existing mother script element to append definitions
-                const motherScript = document.getElementById("DollarDotsCompile");
-                compile(viewRoot, motherScript, "/src/DD6.js");
+                // Compile the new string content
+                const compiled = compileString(template, motherScript);
+
+                // Inject the compiled ID reference
+                viewRoot.innerHTML = `<!--:: ${compiled.id}--><!--::-->`;
 
                 // Render the data into the view
                 renderUnder(viewRoot, appData);
