@@ -13,6 +13,20 @@ export function register(template) {
     Def: getDefinition(id),
   }));
   template.position = Object.keys(dollarDots).length;
+  template.innerDefs = new Map();
+  for (let i = 0; i < template.innerHydras.length; i++) {
+    if (template.innerHydras[i].Def) {
+      template.innerDefs.set(template.innerHydras[i].Def, [[i]]);
+      for (let innerInnerDef of template.innerHydras[i].Def.innerDefs.keys()) {
+        const innerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+        const innerInnerDefPositionsFromOuterPointOfView = innerInnerDefPositions.map(pos => [i, ...pos]);
+        let myInnerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+        myInnerInnerDefPositions ?
+          myInnerInnerDefPositions.push(...innerInnerDefPositionsFromOuterPointOfView) :
+          template.innerDefs.set(innerInnerDef, innerInnerDefPositionsFromOuterPointOfView);
+      }
+    }
+  }
 }
 
 export function getDefinition(id) {

@@ -140,18 +140,30 @@ class UnusedStampsMap {
   add(Def, reusables) { this.#map.set(Def, reusables); }
 
   static resolveNestedStampGroups(nodePositions, result, i, stampGroup) {
-    const nodeI = nodePositions[i];
-    if (nodeI == undefined)
-      return result.push(...stampGroup.reuseAll());
-    const nextStampGroup = stampGroup.nodes[nodeI].stampGroup;
-    return UnusedStampsMap.resolveNestedStampGroups(nodePositions, result, i + 1, nextStampGroup);
+    const nodeIs = nodePositions[i];
+    if (nodeIs == undefined) {
+      result.push(...stampGroup.reuseAll());
+      return;
+    }
+    for (let nodeI of nodeIs) {
+      const nextStampGroup = stampGroup.nodes[nodeI].stampGroup;
+      UnusedStampsMap.resolveNestedStampGroups(nodePositions, result, i + 1, nextStampGroup);
+    }
   }
 
-  extractUnusedInnerReusables(Def, topStartNode) {
+  extractUnusedInnerReusables(Def) {
     const res = [];
-    for (let outerDef of this.#map.keys())
-      if (outerDef.innerDefs.has(Def))
-        UnusedStampsMap.resolveNestedStampGroups(outerDef.innerDefs.get(Def), res, 0, topStartNode.stampGroup);
+    for (let [outerDef, startNodes] of this.#map.entries()) {
+      for (let startNode of startNodes) {
+        if (outerDef.innerDefs.has(Def)) {
+          const nodePositions = outerDef.innerDefs.get(Def);
+          for (let nodeI of nodePositions) {
+            const groupNode = startNode.nodes[nodeI];
+            UnusedStampsMap.resolveNestedStampGroups(nodePositions, res, 1, groupNode.stampGroup);
+          }
+        }
+      }
+    }
     return res;
   }
 
@@ -212,11 +224,11 @@ function reuseAndInstantiateIndividualStamps(todos) {
     const { Def, fillables, reusables } = todo;
 
     //2b. here we can dig inside globalNotUsed for stamps with the current Def. 
-    // if (fillables.size > reusables.size) {
-    //   const innerReusables = globalNotUsed.extractUnusedInnerReusables(Def);
-    //   for (let r of innerReusables)
-    //     reusables.add(r);
-    // }
+    if (fillables.size > reusables.size) {
+      const innerReusables = globalNotUsed.extractUnusedInnerReusables(Def);
+      for (let r of innerReusables)
+        reusables.add(r);
+    }
 
     //2. fill stamps with reusables with the exact same value.
     for (let { fillable, reusable } of extractMatch(fillables, reusables, IdenticalValues))
