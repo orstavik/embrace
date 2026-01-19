@@ -48,33 +48,34 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="card">
-                <h3>User Profile</h3>
-                <p>Name: <span class="highlight">{{user.name}}</span></p>
-                <p>Status: <span class="badge {{getStatusClass(user.status)}}">{{formatLabel(user.status)}}</span></p>
-                <p>Role: {{toUpperCase(user.role)}}</p>
-                <p>Last Seen: {{formatDate(user.lastLogin)}}</p>
-            </div>
+        <!--:: ; -->
+        <div class="card">
+            <h3>User Profile</h3>
+            <p>Name: <span class="highlight">${$.user.name}</span></p>
+            <p>Status: <span class="badge ${$.getStatusClass($.user.status)}">${$.formatLabel($.user.status)}</span></p>
+            <p>Role: ${$.toUpperCase($.user.role)}</p>
+            <p>Last Seen: ${$.formatDate($.user.lastLogin)}</p>
+        </div>
 
-            <div class="card">
-                <h3>Shopping Cart</h3>
-                <ul>
-                    <template for="item of cart">
-                        <li>{{item.name}}: {{item.qty}} x ${{item.price}} = <span
-                                class="highlight">${{calculateLineTotal(item)}}</span></li>
-                    </template>
-                </ul>
-                <hr style="border: 0; border-top: 1px solid #334155;">
-                <p>Total Items: {{cart.reduce((sum, i) => sum + i.qty, 0)}}</p>
-                <!-- <p>Total Items: {{calculateTotalItems(cart)}}</p> -->
-                <p>Grand Total: <span class="highlight">${{calculateGrandTotal(cart).toFixed(2)}}</span></p>
-            </div>
-        </template>
+        <div class="card">
+            <h3>Shopping Cart</h3>
+            <ul>
+                <!--:: for($.item of $.cart) -->
+                <li>${$.item.name}: ${$.item.qty} x $${$.item.price} = <span
+                        class="highlight">$${$.calculateLineTotal($.item)}</span></li>
+                <!--::-->
+            </ul>
+            <hr style="border: 0; border-top: 1px solid #334155;">
+            <p>Total Items: ${$.cart.reduce((sum, i) => sum + i.qty, 0)}</p>
+            <!-- <p>Total Items: ${$.calculateTotalItems($.cart)}</p> -->
+            <p>Grand Total: <span class="highlight">$${$.calculateGrandTotal($.cart).toFixed(2)}</span></p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         // Custom functions to be used inside the template
         const helpers = {
@@ -116,7 +117,7 @@
         // Merge helpers into the data object so they are accessible by the template
         const context = { ...data, ...helpers };
 
-        embrace(document.getElementById("app"), context);
+        renderUnder(document.getElementById("app"), context);
     </script>
 </body>
 

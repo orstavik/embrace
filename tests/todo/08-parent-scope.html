@@ -31,22 +31,21 @@
 
 <body>
     <div id="app">
-        <template>
-            <template for="user of users">
-                <div class="user">
-                    <h2>{{user.name}}'s Posts</h2>
-                    <template for="post of user.posts">
-                        <div class="post">
-                            "{{post.title}}" (Author: {{user.name}})
-                        </div>
-                    </template>
-                </div>
-            </template>
-        </template>
+        <!--:: for($.user of $.users) -->
+        <div class="user">
+            <h2>${$.user.name}'s Posts</h2>
+            <!--:: for($.post of $.user.posts) -->
+            <div class="post">
+                "${$.post.title}" (Author: ${$.user.name})
+            </div>
+            <!--::-->
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "users": [
                 {
@@ -70,7 +69,7 @@
                 }
             ]
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

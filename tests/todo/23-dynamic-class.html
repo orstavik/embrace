@@ -80,57 +80,49 @@
 
 <body>
     <div id="app" class="container">
-        <template>
-            <h1>{{title}}</h1>
+        <!--:: ; -->
+        <h1>${$.title}</h1>
 
-            <section class="card">
-                <h2>1. Ternary Operator Approach</h2>
-                <div class="feature-badge">Feature: Conditional classes via ternaries</div>
-                <template for="t of tasks">
-                    <div
-                        class="card {{ t.isCompleted ? 'is-completed' : '' }} {{ t.priority === 'High' ? 'is-high-priority' : '' }}">
-                        {{t.name}} - {{t.status}}
-                    </div>
-                </template>
-            </section>
+        <section class="card">
+            <h2>1. Ternary Operator Approach</h2>
+            <div class="feature-badge">Feature: Conditional classes via ternaries</div>
+            <!--:: for($.t of $.tasks) -->
+            <div
+                class="card ${ $.t.isCompleted ? 'is-completed' : '' } ${ $.t.priority === 'High' ? 'is-high-priority' : '' }">
+                ${$.t.name} - ${$.t.status}
+            </div>
+            <!--::-->
+        </section>
 
-            <section class="card">
-                <h2>2. Array Syntax (Manual Join)</h2>
-                <div class="feature-badge">Feature: Use .join(' ') for space-separation</div>
-                <div class="card {{classList.join(' ')}}">
-                    This text should be BOLD and ITALIC.
-                </div>
-            </section>
+        <section class="card">
+            <h2>2. Array Syntax (Manual Join)</h2>
+            <div class="feature-badge">Feature: Use .join(' ') for space-separation</div>
+            <div class="card ${$.classList.join(' ')}">
+                This text should be BOLD and ITALIC.
+            </div>
+        </section>
 
-            <section class="card">
-                <h2>4. Dynamic Object (Manual Conversion)</h2>
-                <div class="feature-badge">Feature: Use Object.entries and filter/map/join</div>
-                <div class="card {{Object.entries(classObj).join(' ')}}">
-                    This uses an inline object-to-class-list conversion.
-                </div>
-            </section>
+        <section class="card">
+            <h2>4. Dynamic Object (Manual Conversion)</h2>
+            <div class="feature-badge">Feature: Use Object.entries and filter/map/join</div>
+            <div class="card ${Object.entries($.classObj).filter(i=>i[1]).map(i=>i[0]).join(' ')}">
+                This uses an inline object-to-class-list conversion.
+            </div>
+        </section>
 
-            <!-- this comment is not getting ignored -->
-            <!-- <section class="card">
-                <h2>4. Dynamic Object (Manual Conversion)</h2>
-                <div class="feature-badge">Feature: Use Object.entries and filter/map/join</div>
-                <div class="card {{Object.entries(classObj).filter(i=>i[1]).map(i=>i[0]).join(' ')}}">
-                    This uses an inline object-to-class-list conversion.
-                </div>
-            </section> -->
-
-            <section class="card">
-                <h2>5. Mixed Static and Dynamic</h2>
-                <div class="feature-badge">Feature: Correctly joins with space even when mixed</div>
-                <div class="card tag-{{ { primary: true, secondary: false } }} bold">
-                    This should have classes: card, tag-primary, and bold.
-                </div>
-            </section>
-        </template>
+        <section class="card">
+            <h2>5. Mixed Static and Dynamic</h2>
+            <div class="feature-badge">Feature: Correctly joins with space even when mixed</div>
+            <div class="card tag-${ ({primary: true, secondary: false}).primary ? 'primary' : '' } bold">
+                This should have classes: card, tag-primary, and bold.
+            </div>
+        </section>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const data = {
             "title": "23 - Dynamic Classes",
@@ -170,7 +162,7 @@
                 "italic"
             ]
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

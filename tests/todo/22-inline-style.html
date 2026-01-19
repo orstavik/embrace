@@ -81,34 +81,35 @@
 
 <body>
     <div id="app" class="container">
-        <template>
-            <h1>{{title}}</h1>
-            <template for="p of projects">
-                <div class="project-card" style="border-left: 4px solid {{p.isUrgent ? '#ef4444' : '#3b82f6'}}">
-                    <div class="project-header">
-                        <span class="project-name">{{p.name}}</span>
-                        <span class="priority-label"
-                            style="color: {{p.priority === 'High' ? '#f87171' : (p.priority === 'Medium' ? '#fbbf24' : '#60a5fa')}}">
-                            Priority: {{p.priority}}
-                        </span>
-                    </div>
+        <!--:: ;-->
+        <h1>${$.title}</h1>
+        <!--:: for($.p of $.projects) -->
+        <div class="project-card" style="border-left: 4px solid ${$.p.isUrgent ? '#ef4444' : '#3b82f6'}">
+            <div class="project-header">
+                <span class="project-name">${$.p.name}</span>
+                <span class="priority-label"
+                    style="color: ${$.p.priority === 'High' ? '#f87171' : ($.p.priority === 'Medium' ? '#fbbf24' : '#60a5fa')}">
+                    Priority: ${$.p.priority}
+                </span>
+            </div>
 
-                    <div class="progress-container">
-                        <div class="progress-bar"
-                            style="width: {{p.progress}}%; background: {{p.progress === 100 ? '#22c55e' : (p.progress > 50 ? '#3b82f6' : '#f59e0b')}}">
-                        </div>
-                    </div>
-
-                    <div style="font-size: 0.875rem; color: var(--text-muted); text-align: right;">
-                        {{p.progress}}% Complete
-                    </div>
+            <div class="progress-container">
+                <div class="progress-bar"
+                    style="width: ${$.p.progress}%; background: ${$.p.progress === 100 ? '#22c55e' : ($.p.progress > 50 ? '#3b82f6' : '#f59e0b')}">
                 </div>
-            </template>
-        </template>
+            </div>
+
+            <div style="font-size: 0.875rem; color: var(--text-muted); text-align: right;">
+                ${$.p.progress}% Complete
+            </div>
+        </div>
+        <!--::-->
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const data = {
             "title": "Project Status Dashboard",
@@ -139,7 +140,7 @@
                 }
             ]
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

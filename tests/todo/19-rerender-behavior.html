@@ -37,17 +37,18 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="msg">
-                {{message}}
-            </div>
-        </template>
+        <!--:: ; -->
+        <div class="msg">
+            ${$.message}
+        </div>
+        <!--::-->
     </div>
 
     <button id="btn">Click to Update</button>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data1 = {
             "message": "First render"
         };
@@ -56,12 +57,12 @@
         };
 
         const app = document.getElementById("app");
-        embrace(app, data1);
+        renderUnder(app, data1);
 
         let toggle = false;
         document.getElementById("btn").addEventListener("click", () => {
             toggle = !toggle;
-            embrace(app, toggle ? data2 : data1);
+            renderUnder(app, toggle ? data2 : data1);
         });
     </script>
 </body>

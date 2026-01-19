@@ -30,34 +30,35 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="box">
-                <h2>User Info</h2>
-                <p>Role (uppercase): {{ user.role.toUpperCase() }}</p>
-                <p>Status: {{ user.isPremium ? "Premium User" : "Standard User" }}</p>
-            </div>
+        <!--:: ; -->
+        <div class="box">
+            <h2>User Info</h2>
+            <p>Role (uppercase): ${$.user.role.toUpperCase()}</p>
+            <p>Status: ${$.user.isPremium ? "Premium User" : "Standard User"}</p>
+        </div>
 
-            <div class="box">
-                <h2>Cart Summary</h2>
-                <ul>
-                    <template for="item of cart">
-                        <li>{{ item.name }}: {{ item.qty }} x ${{ item.price }} = ${{ item.qty * item.price }}</li>
-                    </template>
-                </ul>
-                <p>Total Items: {{ cart.reduce((sum, i) => sum + i.qty, 0) }}</p>
-                <p>Total Value: ${{ cart.reduce((sum, i) => sum + i.qty * i.price, 0).toFixed(2) }}</p>
-            </div>
+        <div class="box">
+            <h2>Cart Summary</h2>
+            <ul>
+                <!--:: for($.item of $.cart) -->
+                <li>${$.item.name}: ${$.item.qty} x $${$.item.price} = $${$.item.qty * $.item.price}</li>
+                <!--::-->
+            </ul>
+            <p>Total Items: ${$.cart.reduce((sum, i) => sum + i.qty, 0)}</p>
+            <p>Total Value: $${$.cart.reduce((sum, i) => sum + i.qty * i.price, 0).toFixed(2)}</p>
+        </div>
 
-            <div class="box">
-                <h2>Special Prefixes (Optional)</h2>
-                <p>Admin Role: {{ adminRole.toUpperCase() }}</p>
-                <p>Global Role: {{ globalRole.toUpperCase() }}</p>
-            </div>
-        </template>
+        <div class="box">
+            <h2>Special Prefixes (Optional)</h2>
+            <p>Admin Role: ${$.adminRole.toUpperCase()}</p>
+            <p>Global Role: ${$.globalRole.toUpperCase()}</p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const data = {
             user: {
@@ -74,7 +75,7 @@
         };
 
         try {
-            embrace(document.getElementById("app"), data);
+            renderUnder(document.getElementById("app"), data);
         } catch (e) {
             console.error("Embrace Error:", e);
             document.body.insertAdjacentHTML('beforeend', `<p class="error">Embrace failed: ${e.message}</p>`);

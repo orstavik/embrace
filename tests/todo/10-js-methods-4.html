@@ -48,37 +48,38 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="card">
-                <h3>User Profile</h3>
-                <p>Name: <span class="highlight">{{user.name}}</span></p>
-                <p>Status:
-                    <span class="badge {{user.status === 'active' ? 'badge-active' : 'badge-inactive'}}">
-                        {{user.status.charAt(0).toUpperCase() + user.status.slice(1)}}
-                    </span>
-                </p>
-                <p>Role: {{user.role.toUpperCase()}}</p>
-                <p>Last Seen: {{new Date(user.lastLogin).toLocaleDateString()}}</p>
-            </div>
+        <!--:: ; -->
+        <div class="card">
+            <h3>User Profile</h3>
+            <p>Name: <span class="highlight">${$.user.name}</span></p>
+            <p>Status:
+                <span class="badge ${$.user.status === 'active' ? 'badge-active' : 'badge-inactive'}">
+                    ${$.user.status.charAt(0).toUpperCase() + $.user.status.slice(1)}
+                </span>
+            </p>
+            <p>Role: ${$.user.role.toUpperCase()}</p>
+            <p>Last Seen: ${new Date($.user.lastLogin).toLocaleDateString()}</p>
+        </div>
 
-            <div class="card">
-                <h3>Shopping Cart</h3>
-                <ul>
-                    <template for="item of cart">
-                        <li>{{item.name}}: {{item.qty}} x ${{item.price}} = <span class="highlight">${{(item.price *
-                                item.qty).toFixed(2)}}</span></li>
-                    </template>
-                </ul>
-                <hr style="border: 0; border-top: 1px solid #334155;">
-                <p>Total Items: {{cart.reduce((sum, i) => sum + i.qty, 0)}}</p>
-                <p>Grand Total: <span class="highlight">${{cart.reduce((sum, i) => sum + (i.price * i.qty),
-                        0).toFixed(2)}}</span></p>
-            </div>
-        </template>
+        <div class="card">
+            <h3>Shopping Cart</h3>
+            <ul>
+                <!--:: for($.item of $.cart) -->
+                <li>${$.item.name}: ${$.item.qty} x $${$.item.price} = <span class="highlight">$${($.item.price *
+                        $.item.qty).toFixed(2)}</span></li>
+                <!--::-->
+            </ul>
+            <hr style="border: 0; border-top: 1px solid #334155;">
+            <p>Total Items: ${$.cart.reduce((sum, i) => sum + i.qty, 0)}</p>
+            <p>Grand Total: <span class="highlight">$${$.cart.reduce((sum, i) => sum + (i.price * i.qty),
+                    0).toFixed(2)}</span></p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const data = {
             "user": {
@@ -105,7 +106,7 @@
                 }
             ]
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

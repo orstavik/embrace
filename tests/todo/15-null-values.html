@@ -16,26 +16,27 @@
 
 <body>
     <div id="app">
-        <template>
-            <p>User: {{user.name}}</p>
-            <template if="user.address">
-                <p>Address: {{user.address}}</p>
-            </template>
-            <template if="!user.address">
-                <p><em>No address provided.</em></p>
-            </template>
-        </template>
+        <!--:: ; -->
+        <p>User: ${$.user.name}</p>
+        <!--:: if($.user.address) -->
+        <p>Address: ${$.user.address}</p>
+        <!--::-->
+        <!--:: if(!$.user.address) -->
+        <p><em>No address provided.</em></p>
+        <!--::-->
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "user": {
                 "name": "Alex",
                 "address": null
             }
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

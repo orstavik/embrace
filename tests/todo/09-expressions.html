@@ -29,25 +29,26 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="calc">
-                <p>Price: ${{price}}</p>
-                <p>Quantity: {{quantity}}</p>
-                <hr>
-                <p>Total: <span class="highlight">${{price * quantity}}</span></p>
-                <p>Tax (10%): ${{price * quantity * 0.1}}</p>
-                <p>Grand Total: <span class="highlight">${{price * quantity * 1.1}}</span></p>
-            </div>
-        </template>
+        <!--:: ; -->
+        <div class="calc">
+            <p>Price: $${$.price}</p>
+            <p>Quantity: ${$.quantity}</p>
+            <hr>
+            <p>Total: <span class="highlight">$${$.price * $.quantity}</span></p>
+            <p>Tax (10%): $${$.price * $.quantity * 0.1}</p>
+            <p>Grand Total: <span class="highlight">$${$.price * $.quantity * 1.1}</span></p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "price": 250,
             "quantity": 4
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

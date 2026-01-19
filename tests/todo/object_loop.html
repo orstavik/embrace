@@ -22,22 +22,23 @@
 <body>
     <h1>Object Iteration & Scope Test</h1>
     <div id="app">
-        <template>
-            <h2>Users (Version: {{metadata.version}})</h2>
-            <template for="user of users">
-                <div class="user-card">
-                    <strong>Key:</strong> {{$user}}<br>
-                    <strong>Index:</strong> {{#user}}<br>
-                    <strong>Name:</strong> {{user.name}}<br>
-                    <strong>Role:</strong> {{user.role}}<br>
-                    <small>Metadata inside loop: {{metadata.updated}}</small>
-                </div>
-            </template>
-        </template>
+        <!--:: ; -->
+        <h2>Users (Version: ${$.metadata.version})</h2>
+        <!--:: for([$.i, [$.k, $.user]] of Object.entries($.users).entries()) -->
+        <div class="user-card">
+            <strong>Key:</strong> ${$.k}<br>
+            <strong>Index:</strong> ${$.i}<br>
+            <strong>Name:</strong> ${$.user.name}<br>
+            <strong>Role:</strong> ${$.user.role}<br>
+            <small>Metadata inside loop: ${$.metadata.updated}</small>
+        </div>
+        <!--::-->
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "users": {
                 "user1": {
@@ -54,7 +55,7 @@
                 "updated": "today"
             }
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

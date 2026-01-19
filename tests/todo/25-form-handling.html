@@ -123,65 +123,56 @@
 
 <body>
     <div id="app" class="container">
-        <template>
-            <h1>User Profile Settings</h1>
+        <!--:: ; -->
+        <h1>User Profile Settings</h1>
 
-            <div class="form-group">
-                <label>First Name</label>
-                <input type="text" data-path="user.firstName" value="{{user.firstName}}" placeholder="Enter first name">
-            </div>
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" data-path="user.firstName" value="${$.user.firstName}" placeholder="Enter first name">
+        </div>
 
-            <div class="form-group">
-                <label>Last Name</label>
-                <input type="text" data-path="user.lastName" value="{{user.lastName}}" placeholder="Enter last name">
-            </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" data-path="user.lastName" value="${$.user.lastName}" placeholder="Enter last name">
+        </div>
 
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" data-path="user.email" value="{{user.email}}" placeholder="example@domain.com">
-            </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" data-path="user.email" value="${$.user.email}" placeholder="example@domain.com">
+        </div>
 
-            <!-- <div class="form-group">
-                <label>Role</label>
-                <select data-path="user.role" value="{{user.role}}">
-                    <template for="r of roles">
-                        <option value="{{r}}">{{r.charAt(0).toUpperCase() + r.slice(1)}}</option>
-                    </template>
-                </select>
-            </div> -->
+        <div class="form-group">
+            <label>Role</label>
+            <select data-path="user.role" value="${$.user.role}">
+                <!--:: for($.r of $.roles) -->
+                <option value="${$.r}">${$.r}</option>
+                <!--::-->
+            </select>
+        </div>
 
-            <div class="form-group">
-                <label>Role</label>
-                <select data-path="user.role" value="{{user.role}}">
-                    <template for="r of roles">
-                        <option value="{{r}}">{{r}}</option>
-                    </template>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>Bio</label>
+            <textarea data-path="user.bio" rows="4" placeholder="Tell us about yourself">${$.user.bio}</textarea>
+        </div>
 
-            <div class="form-group">
-                <label>Bio</label>
-                <textarea data-path="user.bio" rows="4" placeholder="Tell us about yourself">{{user.bio}}</textarea>
-            </div>
+        <div class="form-group checkbox-group">
+            <input type="checkbox" data-path="user.newsletter" ${$.user.newsletter ? 'checked' : '' } id="newsletter">
+            <label for="newsletter" style="cursor: pointer;">Subscribe to newsletter</label>
+        </div>
 
-            <div class="form-group checkbox-group">
-                <input type="checkbox" data-path="user.newsletter" {{user.newsletter ? 'checked' : '' }}
-                    id="newsletter">
-                <label for="newsletter" style="cursor: pointer;">Subscribe to newsletter</label>
-            </div>
+        <div class="actions">
+            <button class="primary" id="exportBtn">Export Data (JSON)</button>
+            <button class="secondary" id="resetBtn">Reset Form</button>
+        </div>
 
-            <div class="actions">
-                <button class="primary" id="exportBtn">Export Data (JSON)</button>
-                <button class="secondary" id="resetBtn">Reset Form</button>
-            </div>
-
-            <h3 style="margin-top: 3rem; color: #64748b;">Live Preview (Local State)</h3>
-            <pre>{{JSON.stringify(user, null, 2)}}</pre>
-        </template>
+        <h3 style="margin-top: 3rem; color: #64748b;">Live Preview (Local State)</h3>
+        <pre>${JSON.stringify($.user, null, 2)}</pre>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const initialData = {
             "user": {
@@ -250,7 +241,7 @@
         }
 
         function render() {
-            embrace(appEl, appData);
+            renderUnder(appEl, appData);
         }
 
         function init() {

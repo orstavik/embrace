@@ -28,28 +28,29 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="section">
-                <h3>JSON Stringify</h3>
-                <pre>{{JSON.stringify(user, null, 2)}}</pre>
-            </div>
+        <!--:: ; -->
+        <div class="section">
+            <h3>JSON Stringify</h3>
+            <pre>${JSON.stringify($.user, null, 2)}</pre>
+        </div>
 
-            <div class="section">
-                <h3>Object Keys</h3>
-                <p>User keys: {{Object.keys(user).join(', ')}}</p>
-                <p>Role uppercase: {{user.role.toUpperCase()}}</p>
-            </div>
+        <div class="section">
+            <h3>Object Keys</h3>
+            <p>User keys: ${Object.keys($.user).join(', ')}</p>
+            <p>Role uppercase: ${$.user.role.toUpperCase()}</p>
+        </div>
 
-            <div class="section">
-                <h3>Array Methods</h3>
-                <p>Sum: {{items.reduce((a, b) => a + b, 0)}}</p>
-                <p>Filtered ( > 3): {{items.filter(x => x > 3).join(' | ')}}</p>
-            </div>
-        </template>
+        <div class="section">
+            <h3>Array Methods</h3>
+            <p>Sum: ${$.items.reduce((a, b) => a + b, 0)}</p>
+            <p>Filtered ( > 3): ${$.items.filter(x => x > 3).join(' | ')}</p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "items": [
                 1,
@@ -64,7 +65,7 @@
                 "role": "admin"
             }
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

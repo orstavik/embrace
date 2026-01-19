@@ -51,23 +51,24 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="clock-container">
-                <div class="label">Current Date</div>
-                <div class="date">{{formatDate(now)}}</div>
+        <!--:: ; -->
+        <div class="clock-container">
+            <div class="label">Current Date</div>
+            <div class="date">${$.formatDate($.now)}</div>
 
-                <div class="label" style="margin-top: 20px;">Current Time</div>
-                <div class="time">{{formatTime(now)}}</div>
+            <div class="label" style="margin-top: 20px;">Current Time</div>
+            <div class="time">${$.formatTime($.now)}</div>
 
-                <div style="margin-top: 30px; color: #4ade80; font-size: 0.9rem;">
-                    Auto-updating every second via <code>embrace()</code>
-                </div>
+            <div style="margin-top: 30px; color: #4ade80; font-size: 0.9rem;">
+                Auto-updating every second via <code>renderUnder()</code>
             </div>
-        </template>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const helpers = {
             formatDate: (date) => date.toLocaleDateString(undefined, {
@@ -89,7 +90,7 @@
                 now: new Date(),
                 ...helpers
             };
-            embrace(document.getElementById("app"), data);
+            renderUnder(document.getElementById("app"), data);
         }
 
         // Initial render

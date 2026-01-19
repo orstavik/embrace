@@ -33,30 +33,29 @@
 
 <body>
     <div id="app">
-        <template>
-            <template if="isLoggedIn">
-                <div class="box logged-in">
-                    <h1>Welcome back, {{user.name}}!</h1>
-                </div>
-            </template>
+        <!--:: if($.isLoggedIn) -->
+        <div class="box logged-in">
+            <h1>Welcome back, ${$.user.name}!</h1>
+        </div>
+        <!--::-->
 
-            <template if="!isLoggedIn">
-                <div class="box logged-out">
-                    <h1>Please log in to continue.</h1>
-                </div>
-            </template>
-        </template>
+        <!--:: if(!$.isLoggedIn) -->
+        <div class="box logged-out">
+            <h1>Please log in to continue.</h1>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "isLoggedIn": true,
             "user": {
                 "name": "Lojith"
             }
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

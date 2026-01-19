@@ -21,24 +21,23 @@
 
 <body>
     <div id="app">
-        <template>
-            <ul>
-                <template for="item of items">
-                    <li>{{item}}</li>
-                </template>
-            </ul>
-            <template if="items.length === 0">
-                <p class="empty-msg">No items found in the list.</p>
-            </template>
-        </template>
+        <ul>
+            <!--:: for($.item of $.items) -->
+            <li>${$.item}</li>
+            <!--::-->
+        </ul>
+        <!--:: if($.items.length === 0) -->
+        <p class="empty-msg">No items found in the list.</p>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "items": []
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

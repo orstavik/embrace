@@ -111,41 +111,42 @@
 
 <body>
     <div id="app" class="container">
-        <template>
-            <h1>{{title}}</h1>
-            <div class="table-card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template for="emp of employees">
-                            <tr>
-                                <td>#{{emp.id}}</td>
-                                <td style="font-weight: 600;">{{emp.name}}</td>
-                                <td style="color: var(--text-muted);">{{emp.email}}</td>
-                                <td>{{emp.role}}</td>
-                                <td>
-                                    <span class="status-badge status-{{emp.status}}">
-                                        {{emp.status}}
-                                    </span>
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-        </template>
+        <!--:: ; -->
+        <h1>${$.title}</h1>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--:: for($.emp of $.employees) -->
+                    <tr>
+                        <td>#${$.emp.id}</td>
+                        <td style="font-weight: 600;">${$.emp.name}</td>
+                        <td style="color: var(--text-muted);">${$.emp.email}</td>
+                        <td>${$.emp.role}</td>
+                        <td>
+                            <span class="status-badge status-${$.emp.status}">
+                                ${$.emp.status}
+                            </span>
+                        </td>
+                    </tr>
+                    <!--::-->
+                </tbody>
+            </table>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         const data = {
             "title": "Employee Directory",
@@ -187,7 +188,7 @@
                 }
             ]
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

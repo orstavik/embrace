@@ -116,40 +116,41 @@
 
 <body>
     <div id="app">
-        <template>
-            <header>
-                <h1>{{series[0].title}}</h1>
-                <p>{{series[0].shortText}} (by {{producer}})</p>
-            </header>
+        <!--:: ; -->
+        <header>
+            <h1>${$.series[0].title}</h1>
+            <p>${$.series[0].shortText} (by ${$.producer})</p>
+        </header>
+        <!--::-->
 
-            <div class="grid">
-                <template for="s of series[0].seasons">
-                    <div class="card" data-index="{{#s}}">
-                        <h3>{{s.title}}</h3>
-                        <p>{{s.episodes.length}} Episodes</p>
-                    </div>
-                </template>
+        <div class="grid">
+            <!--:: for([$.i, $.s] of $.series[0].seasons.entries()) -->
+            <div class="card" data-index="${$.i}">
+                <h3>${$.s.title}</h3>
+                <p>${$.s.episodes.length} Episodes</p>
             </div>
+            <!--::-->
+        </div>
 
-            <template if="selectedSeason">
-                <div class="modal-overlay" data-action="close">
-                    <div class="modal-content">
-                        <button class="modal-close" data-action="close">&times;</button>
-                        <h2>{{selectedSeason.title}}</h2>
-                        <p>Detailed Episode List:</p>
-                        <ul>
-                            <template for="ep of selectedSeason.episodes">
-                                <li>{{ep}}</li>
-                            </template>
-                        </ul>
-                    </div>
-                </div>
-            </template>
-        </template>
+        <!--:: if($.selectedSeason) -->
+        <div class="modal-overlay" data-action="close">
+            <div class="modal-content">
+                <button class="modal-close" data-action="close">&times;</button>
+                <h2>${$.selectedSeason.title}</h2>
+                <p>Detailed Episode List:</p>
+                <ul>
+                    <!--:: for($.ep of $.selectedSeason.episodes) -->
+                    <li>${$.ep}</li>
+                    <!--::-->
+                </ul>
+            </div>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
 
         let appData = {
             "series": [
@@ -214,7 +215,7 @@
         });
 
         function render() {
-            embrace(appEl, appData);
+            renderUnder(appEl, appData);
         }
 
         render();

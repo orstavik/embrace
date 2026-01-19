@@ -23,20 +23,21 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="box">
-                <h3>Default Interpolation (Escaped)</h3>
-                <p>Result: {{content}}</p>
-            </div>
-        </template>
+        <!--:: ; -->
+        <div class="box">
+            <h3>Default Interpolation (Escaped)</h3>
+            <p>Result: ${$.content}</p>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "content": "<strong>Injected HTML</strong>"
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

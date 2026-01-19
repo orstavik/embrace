@@ -23,24 +23,23 @@
 
 <body>
     <div id="app">
-        <template>
-            <template if="age >= 18 && verified">
-                <div class="badge">✅ Access Granted: Adult & Verified</div>
-            </template>
+        <!--:: if($.age >= 18 && $.verified) -->
+        <div class="badge">✅ Access Granted: Adult & Verified</div>
+        <!--::-->
 
-            <template if="age < 18 || !verified">
-                <div class="badge">❌ Access Denied</div>
-            </template>
-        </template>
+        <!--:: if($.age < 18 || !$.verified) -->
+        <div class="badge">❌ Access Denied</div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "age": 21,
             "verified": true
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

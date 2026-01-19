@@ -41,20 +41,21 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="panel">
-                <h2>System Status: {{isActive ? 'ACTIVE' : 'INACTIVE'}}</h2>
-                <div class="indicator {{isActive ? 'active' : 'inactive'}}"></div>
-            </div>
-        </template>
+        <!--:: ; -->
+        <div class="panel">
+            <h2>System Status: ${$.isActive ? 'ACTIVE' : 'INACTIVE'}</h2>
+            <div class="indicator ${$.isActive ? 'active' : 'inactive'}"></div>
+        </div>
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         const data = {
             "isActive": true
         };
-        embrace(document.getElementById("app"), data);
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 
