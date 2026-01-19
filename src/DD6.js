@@ -68,7 +68,7 @@ export function* findDollarDots(node) {
     const txt = node.nodeValue?.trim();
     if (node.nodeType === Node.COMMENT_NODE && txt.startsWith(":: ")) {
       const id = txt.match(/^::\s+(id_[0-9a-f]{32})\s*$/i)?.[1];
-      let { end, commas } = findEndComment(node);
+      let { end, commas } = findEndComment(node) ?? {};
       if (!end) { //implicit close at endOf siblings
         end = document.createComment("::");
         node.parentNode.append(end);
