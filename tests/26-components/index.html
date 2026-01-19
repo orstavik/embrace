@@ -118,8 +118,23 @@
                 const { EmbraceUserCard } = await import('./user-card.js');
 
                 // 2. Fetch data
-                const response = await fetch('./data.json');
-                const { users } = await response.json();
+                // 2. Load data
+                const users = [
+                    {
+                        "id": 1,
+                        "name": "Alice Smith",
+                        "role": "Lead Architect",
+                        "avatar": "👩‍💻",
+                        "bio": "Building scalable template engines."
+                    },
+                    {
+                        "id": 2,
+                        "name": "Bob Jones",
+                        "role": "Senior Developer",
+                        "avatar": "👨‍💻",
+                        "bio": "Loves micro-frameworks and performance."
+                    }
+                ];
 
                 // 3. Create component instances
                 users.forEach(userData => {

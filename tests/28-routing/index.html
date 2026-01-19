@@ -146,8 +146,20 @@
 
         async function init() {
             console.log('init');
-            const resp = await fetch('./data.json');
-            appData = await resp.json();
+            appData = {
+                "site": {
+                    "title": "Embrace Router",
+                    "description": "Lightweight client-side routing demo."
+                },
+                "user": {
+                    "name": "Lojith",
+                    "role": "Developer"
+                },
+                "stats": {
+                    "pages": 2,
+                    "mode": "Hash Routing"
+                }
+            };
 
             window.addEventListener('hashchange', router);
             router(); // Initial route

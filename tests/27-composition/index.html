@@ -84,8 +84,21 @@
         async function compose() {
             try {
                 // 1. Load shared data
-                const response = await fetch('./data.json');
-                const data = await response.json();
+                const data = {
+                    "siteName": "Embrace Framework",
+                    "userName": "Lojith",
+                    "year": 2026,
+                    "nav": [
+                        "Home",
+                        "Components",
+                        "Docs",
+                        "About"
+                    ],
+                    "content": {
+                        "title": "Module Composition",
+                        "description": "This page is built from three separate HTML files bound together at runtime."
+                    }
+                };
 
                 // 2. Load external fragments
                 const headerTemplate = await fetchFragment('./header.html');
