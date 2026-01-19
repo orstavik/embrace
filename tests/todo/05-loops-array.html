@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>05 - Array Loops</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #1e293b;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .index {
+            background: #38bdf8;
+            color: #0f172a;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <h1>{{title}}</h1>
+            <ul>
+                <template for="item of items">
+                    <li>
+                        <span class="index">{{#item}}</span>
+                        <span>{{item}}</span>
+                    </li>
+                </template>
+            </ul>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const data = await (await fetch("./data/05-array.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>
