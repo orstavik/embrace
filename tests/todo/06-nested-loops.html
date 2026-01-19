@@ -48,11 +48,25 @@
     <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
         import { renderUnder } from "/src/DDRender61.js";
-        async function run() {
-            const data = await (await fetch("./data/06-nested-loops.json")).json();
-            renderUnder(document.getElementById("app"), data);
-        }
-        run();
+        const data = {
+            "groups": [
+                {
+                    "name": "Group A",
+                    "members": [
+                        "Alice",
+                        "Bob"
+                    ]
+                },
+                {
+                    "name": "Group B",
+                    "members": [
+                        "Charlie",
+                        "David"
+                    ]
+                }
+            ]
+        };
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

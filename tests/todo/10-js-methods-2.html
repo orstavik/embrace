@@ -87,15 +87,36 @@
             calculateTotalItems: (items) => items.reduce((sum, i) => sum + i.qty, 0)
         };
 
-        async function run() {
-            const data = await (await fetch("./data/10-js-methods-2.json")).json();
+        const data = {
+            "user": {
+                "name": "Jane Doe",
+                "role": "editor",
+                "status": "active",
+                "lastLogin": "2023-10-27T10:00:00Z"
+            },
+            "cart": [
+                {
+                    "name": "Apple",
+                    "price": 1.2,
+                    "qty": 5
+                },
+                {
+                    "name": "Banana",
+                    "price": 0.8,
+                    "qty": 10
+                },
+                {
+                    "name": "Cherry",
+                    "price": 2.5,
+                    "qty": 2
+                }
+            ]
+        };
 
-            // Merge helpers into the data object so they are accessible by the template
-            const context = { ...data, ...helpers };
+        // Merge helpers into the data object so they are accessible by the template
+        const context = { ...data, ...helpers };
 
-            embrace(document.getElementById("app"), context);
-        }
-        run();
+        embrace(document.getElementById("app"), context);
     </script>
 </body>
 

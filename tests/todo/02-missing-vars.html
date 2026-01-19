@@ -57,11 +57,9 @@
     <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
         import { renderUnder } from "/src/DDRender61.js";
-        // Inline data since file is missing
         const data = {
-            existing: "I exist",
-            // missing is undefined
-            nullVal: null
+            "existing": "I am here",
+            "nullVal": null
         };
         renderUnder(document.getElementById("app"), data);
     </script>

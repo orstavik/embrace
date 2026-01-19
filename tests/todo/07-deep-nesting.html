@@ -59,11 +59,22 @@
     <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
         import { renderUnder } from "/src/DDRender61.js";
-        async function run() {
-            const data = await (await fetch("./data/07-deep-nesting.json")).json();
-            renderUnder(document.getElementById("app"), data);
-        }
-        run();
+        const data = {
+            "data": [
+                {
+                    "items": [
+                        {
+                            "values": [
+                                1,
+                                2,
+                                3
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 
