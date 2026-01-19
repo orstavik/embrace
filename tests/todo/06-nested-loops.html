@@ -32,24 +32,25 @@
 
 <body>
     <div id="app">
-        <template>
-            <h1>Groups</h1>
-            <template for="group of groups">
-                <div class="group">
-                    <h3>{{group.name}}</h3>
-                    <template for="member of group.members">
-                        <span class="member">{{member}}</span>
-                    </template>
-                </div>
-            </template>
-        </template>
+        <!--:: ; -->
+        <h1>Groups</h1>
+        <!--:: for($.group of $.groups) -->
+        <div class="group">
+            <h3>${$.group.name}</h3>
+            <!--:: for($.member of $.group.members) -->
+            <span class="member">${$.member}</span>
+            <!--::-->
+        </div>
+        <!--::-->
+        <!--::-->
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
+        import { renderUnder } from "/src/DDRender61.js";
         async function run() {
             const data = await (await fetch("./data/06-nested-loops.json")).json();
-            embrace(document.getElementById("app"), data);
+            renderUnder(document.getElementById("app"), data);
         }
         run();
     </script>
