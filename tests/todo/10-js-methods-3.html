@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>10 - JS Methods 3 (Date & Time)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .clock-container {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid #334155;
+            min-width: 400px;
+        }
+
+        .time {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #38bdf8;
+            margin: 10px 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .date {
+            font-size: 1.5rem;
+            color: #94a3b8;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <div class="clock-container">
+                <div class="label">Current Date</div>
+                <div class="date">{{formatDate(now)}}</div>
+
+                <div class="label" style="margin-top: 20px;">Current Time</div>
+                <div class="time">{{formatTime(now)}}</div>
+
+                <div style="margin-top: 30px; color: #4ade80; font-size: 0.9rem;">
+                    Auto-updating every second via <code>embrace()</code>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+
+        const helpers = {
+            formatDate: (date) => date.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }),
+            formatTime: (date) => date.toLocaleTimeString(undefined, {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })
+        };
+
+        function update() {
+            const data = {
+                now: new Date(),
+                ...helpers
+            };
+            embrace(document.getElementById("app"), data);
+        }
+
+        // Initial render
+        update();
+
+        // Update every second
+        setInterval(update, 1000);
+    </script>
+</body>
+
+</html>

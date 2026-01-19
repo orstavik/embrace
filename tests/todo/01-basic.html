@@ -40,21 +40,18 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="card">
-                <h1>Hello, {{name}}!</h1>
-            </div>
-        </template>
+        <!--:: ; -->
+        <div class="card">
+            <h1>Hello, ${$.name}!</h1>
+        </div>
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
-        async function run() {
-            const response = await fetch("./data/01-basic.json");
-            const data = await response.json();
-            embrace(document.getElementById("app"), data);
-        }
-        run();
+        import { renderUnder } from "/src/DDRender61.js";
+        // Inline data since file is missing
+        const data = { name: "World" };
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 

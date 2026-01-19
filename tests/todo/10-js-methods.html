@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>10 - JS Methods</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        pre {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #38bdf8;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <template>
+            <div class="section">
+                <h3>JSON Stringify</h3>
+                <pre>{{JSON.stringify(user, null, 2)}}</pre>
+            </div>
+
+            <div class="section">
+                <h3>Object Keys</h3>
+                <p>User keys: {{Object.keys(user).join(', ')}}</p>
+                <p>Role uppercase: {{user.role.toUpperCase()}}</p>
+            </div>
+
+            <div class="section">
+                <h3>Array Methods</h3>
+                <p>Sum: {{items.reduce((a, b) => a + b, 0)}}</p>
+                <p>Filtered ( > 3): {{items.filter(x => x > 3).join(' | ')}}</p>
+            </div>
+        </template>
+    </div>
+
+    <script type="module">
+        import { embrace } from "../src/v26x.js";
+        async function run() {
+            const data = await (await fetch("./data/10-js-methods.json")).json();
+            embrace(document.getElementById("app"), data);
+        }
+        run();
+    </script>
+</body>
+
+</html>

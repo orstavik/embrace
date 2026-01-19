@@ -39,29 +39,31 @@
 
 <body>
     <div id="app">
-        <template>
-            <div class="container">
-                <h2>Testing Missing/Null Variables</h2>
-                <div class="item">
-                    <span class="label">Existing:</span> <span class="value">{{existing}}</span>
-                </div>
-                <div class="item">
-                    <span class="label">Missing (should be empty):</span> <span class="value">"{{missing}}"</span>
-                </div>
-                <div class="item">
-                    <span class="label">Null (should be empty):</span> <span class="value">"{{nullVal}}"</span>
-                </div>
+        <!--:: ; -->
+        <div class="container">
+            <h2>Testing Missing/Null Variables</h2>
+            <div class="item">
+                <span class="label">Existing:</span> <span class="value">${$.existing}</span>
             </div>
-        </template>
+            <div class="item">
+                <span class="label">Missing (should be empty):</span> <span class="value">"${$.missing || ''}"</span>
+            </div>
+            <div class="item">
+                <span class="label">Null (should be empty):</span> <span class="value">"${$.nullVal || ''}"</span>
+            </div>
+        </div>
     </div>
 
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
     <script type="module">
-        import { embrace } from "../src/v26x.js";
-        async function run() {
-            const data = await (await fetch("./data/02-missing-vars.json")).json();
-            embrace(document.getElementById("app"), data);
-        }
-        run();
+        import { renderUnder } from "/src/DDRender61.js";
+        // Inline data since file is missing
+        const data = {
+            existing: "I exist",
+            // missing is undefined
+            nullVal: null
+        };
+        renderUnder(document.getElementById("app"), data);
     </script>
 </body>
 
