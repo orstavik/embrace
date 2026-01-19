@@ -65,8 +65,10 @@ export function compile(rootNode, motherScript) {
   return res;
 }
 export function compileString(txt, motherScript) {
+  if (!txt.startsWith("<!--:: "))
+    txt = `<!--:: ; -->${txt}<!--::-->`;
   const tmpl = document.createElement("template");
-  tmpl.innerHTML = `<!--:: ; -->${txt}<!--::-->`;
+  tmpl.innerHTML = txt;
   return compile(tmpl.content, motherScript)[0];
 }
 
