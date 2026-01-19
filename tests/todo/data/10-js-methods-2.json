@@ -1,0 +1,25 @@
+{
+    "user": {
+        "name": "Jane Doe",
+        "role": "editor",
+        "status": "active",
+        "lastLogin": "2023-10-27T10:00:00Z"
+    },
+    "cart": [
+        {
+            "name": "Apple",
+            "price": 1.2,
+            "qty": 5
+        },
+        {
+            "name": "Banana",
+            "price": 0.8,
+            "qty": 10
+        },
+        {
+            "name": "Cherry",
+            "price": 2.5,
+            "qty": 2
+        }
+    ]
+}

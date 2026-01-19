@@ -1,0 +1,38 @@
+{
+    "title": "23 - Dynamic Classes",
+    "tasks": [
+        {
+            "name": "Interpolation Regex Fix",
+            "status": "Ready",
+            "isCompleted": true,
+            "priority": "High"
+        },
+        {
+            "name": "Dynamic Object (Manual Conversion)",
+            "status": "Ready",
+            "isCompleted": true,
+            "priority": "Low"
+        },
+        {
+            "name": "Execution Order Fix",
+            "status": "In Progress",
+            "isCompleted": false,
+            "priority": "Medium"
+        },
+        {
+            "name": "Dynamic Classes Feature",
+            "status": "Pending",
+            "isCompleted": false,
+            "priority": "Low"
+        }
+    ],
+    "classObj": {
+        "tag-primary": true,
+        "tag-secondary": false,
+        "active": true
+    },
+    "classList": [
+        "bold",
+        "italic"
+    ]
+}

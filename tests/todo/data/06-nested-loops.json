@@ -1,0 +1,18 @@
+{
+    "groups": [
+        {
+            "name": "Group A",
+            "members": [
+                "Alice",
+                "Bob"
+            ]
+        },
+        {
+            "name": "Group B",
+            "members": [
+                "Charlie",
+                "David"
+            ]
+        }
+    ]
+}

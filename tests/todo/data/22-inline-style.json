@@ -1,0 +1,29 @@
+{
+    "title": "Project Status Dashboard",
+    "projects": [
+        {
+            "name": "Engine Refactor",
+            "progress": 85,
+            "priority": "High",
+            "isUrgent": true
+        },
+        {
+            "name": "Documentation",
+            "progress": 40,
+            "priority": "Low",
+            "isUrgent": false
+        },
+        {
+            "name": "Test Suite",
+            "progress": 100,
+            "priority": "Medium",
+            "isUrgent": false
+        },
+        {
+            "name": "UI Overhaul",
+            "progress": 15,
+            "priority": "High",
+            "isUrgent": true
+        }
+    ]
+}
