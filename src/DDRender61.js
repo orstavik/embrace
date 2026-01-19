@@ -175,6 +175,7 @@ class StampMap {
     const { Def, fillables, reusables } = todo;
     let fs, rs;
     fs = this.#fillables.get(Def);
+    rs = this.#reusables.get(Def);
     if (!fs) {
       this.#fillables.set(Def, fs = []);
       this.#reusables.set(Def, rs = []);

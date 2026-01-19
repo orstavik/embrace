@@ -25,13 +25,9 @@
   <!--::-->
 </div>
 
-<script type="module" id="DollarDotsCompile">
-  import { compile } from "/src/DDCompile.js";
-  compile(document.getElementById("app"), document.getElementById("DollarDotsCompile"), "/src/DD.js");
-</script>
-
+<script type="module" id="DollarDotsCompile" src="/src/DDCompile6.js#qs=#app&dd=/src/DD6.js&id=DollarDotsCompile"></script>
 <script type="module">
-  import { renderUnder } from "/src/DDRender2.js";
+  import { renderUnder } from "/src/DDRender61.js";
 
   const data = await (await fetch("SerSeaEpi.json")).json();
   renderUnder(document.getElementById("app"), data);
