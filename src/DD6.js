@@ -43,7 +43,8 @@ export function getInstance(Def) {
   const innerHydras = Def.innerHydras.map(({ Def, path, hydra }) =>
     ({ Def, hydra, node: resolvePath(root, path) }));
   return {
-    start: root.firstChild, last: root.lastChild.previousSibling, innerHydras, nodes:
+    start: root.firstChild,
+    innerHydras, nodes:
       innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }))
   };
 }

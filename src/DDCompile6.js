@@ -33,7 +33,6 @@ function _compile({ start, id, end }, motherScript) {
     innerHydras.push(_compile(inner, motherScript));
 
   templEl.content.prepend(start.cloneNode());
-  templEl.content.append(end.cloneNode());
   for (let inner of innerHydras)
     inner.path[0] += 1;
 

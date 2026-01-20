@@ -2,15 +2,10 @@ import { getDefinition, findRunnableTemplates, getInstance } from "./DD6.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
-// function getInstance(...args) {
-//   debugger;
-//   return gi(...args);
-// }
-
 function moveNodes(first, last, target) {
   for (let n = first, next; n != last; n = next)
     next = n.nextSibling, target.after(n), (target = n);
-  target.after(last);
+  last && target.after(last);
 }
 
 function removeNodes(first, last) {
