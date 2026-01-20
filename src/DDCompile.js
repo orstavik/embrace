@@ -43,10 +43,11 @@ function _compile({ start, id, end }) {
   return [{ id, hydra, templateString, innerHydras }, ...res];
 }
 
-function _updateAndRegisterScript(motherScript, template) {
-  template.innerHydras = template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra }));
-  motherScript.textContent += `register(${POJO.stringify(template, null, 2, 120)});\n\n`;
-  // register(template);
+function templateToString(template) {
+  return POJO.stringify({
+    ...template,
+    innerHydras: template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra })),
+  }, null, 2, 120);
 }
 
 export function compile(rootNode, motherScript) {
@@ -56,10 +57,6 @@ export function compile(rootNode, motherScript) {
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
       res.push(..._compile(n));
-  for (let i = res.length - 1; i >= 0; i--) {
-    _updateAndRegisterScript(motherScript, res[i]);
-    register(res[i]);
-  }
   return res;
 }
 export function compileString(txt, motherScript) {
@@ -88,5 +85,9 @@ export function compileString(txt, motherScript) {
   const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
   compileScript.textContent = `import { register } from "${path}";\n\n`;
   const root = document.querySelector(sp.qs ?? "body");
-  compile(root, compileScript);
+  const res = compile(root, compileScript);
+  for (let i = res.length - 1; i >= 0; i--) {
+    compileScript.textContent += `register(${templateToString(res[i])});\n\n`;
+    register(res[i]);
+  }
 })();

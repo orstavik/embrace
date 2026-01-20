@@ -88,11 +88,10 @@
                 await new Promise(resolve => requestAnimationFrame(resolve));
             const header = compileString(headerTxt, motherScript);
             const footer = compileString(footerTxt, motherScript);
-            // for (let t of header.reverse()) register(t);
-            // for (let t of footer.reverse()) register(t);
-            debugger
-            document.getElementById('header').innerHTML = `<!--:: ${header[0].id}--><!--::-->`;
-            document.getElementById('footer').innerHTML = `<!--:: ${footer[0].id}--><!--::-->`;
+            for (let t of header.reverse()) register(t);
+            for (let t of footer.reverse()) register(t);
+            document.getElementById('header').innerHTML = `<!--:: ${header.at(-1).id}--><!--::-->`;
+            document.getElementById('footer').innerHTML = `<!--:: ${footer.at(-1).id}--><!--::-->`;
 
             renderUnder(document.getElementById("app"), data);
         }
