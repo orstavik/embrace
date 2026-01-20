@@ -55,8 +55,6 @@ function _updateAndRegisterScript(motherScript, template) {
 export function compile(rootNode, motherScript) {
   if (!(rootNode instanceof Node))
     throw new Error("rootNode must be a DOM node");
-  if (!(motherScript instanceof HTMLScriptElement))
-    throw new Error("motherScript must be a <script> element");
   const res = [];
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
@@ -72,7 +70,7 @@ export function compileString(txt, motherScript) {
     txt = `<!--:: ; -->${txt}<!--::-->`;
   const tmpl = document.createElement("template");
   tmpl.innerHTML = txt;
-  return compile(tmpl.content, motherScript)[0];
+  return compile(tmpl.content, motherScript);
 }
 
 (function autoCompile() {
@@ -86,6 +84,8 @@ export function compileString(txt, motherScript) {
   const compileScript = document.getElementById(sp.id ?? "DollarDotsCompile");
   if (!compileScript) //if there is no script to compile anymore, then we assume we have already run.
     return;
+  if (!(compileScript instanceof HTMLScriptElement))
+    throw new Error("compileScript must be a <script> element");
   compileScript.type = "module";
   compileScript.id = id;
   const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
