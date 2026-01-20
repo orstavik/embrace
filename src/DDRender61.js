@@ -108,8 +108,6 @@ class StampGroup {
     const diffs = diff(this.#values ?? [], newValues ?? []);
     for (let { a, b } of diffs) {
       if (b.length == a.length) {
-        if (a == b)
-          debugger; //if this is ok, then we can remove the length check
         newStamps.push(...this.#stamps.splice(0, a.length));
       } else if (b.length) {
         const cs = b.map(_ => document.createComment("::,"));
