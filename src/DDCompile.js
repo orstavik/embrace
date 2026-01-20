@@ -18,6 +18,7 @@ function pathFunction(start) {
 //2. each template that is compiled is *both* registered and written to the motherScript.
 
 function _compile({ start, id, end }, motherScript) {
+  const res = [];
   const templEl = document.createElement("template");
   templEl.content.append(document.createComment("::,"));
   while (start.nextSibling != end)
@@ -25,12 +26,16 @@ function _compile({ start, id, end }, motherScript) {
 
   const innerHydras = [];
   for (let inner of findDollarDots(templEl.content)) {
-    const innerT =
-      inner.id ? { id } :
-        !inner.end ? { hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() } :
-          _compile(inner, motherScript);
-    innerT.path = pathFunction(inner.start);
-    innerHydras.push(innerT);
+    const path = pathFunction(inner.start);
+    if (inner.id)
+      innerHydras.push({ id: inner.id, path });
+    else if (!inner.end)
+      innerHydras.push({ path, hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() })
+    else {
+      const innerTemplates = _compile(inner, motherScript);
+      innerHydras.push({ path, ...innerTemplates[0] });
+      res.push(...innerTemplates);
+    }
   }
 
   const templateString = templEl.innerHTML;
@@ -38,15 +43,13 @@ function _compile({ start, id, end }, motherScript) {
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;
 
-  const res = { id, hydra, templateString, innerHydras };
-  _updateAndRegisterScript(motherScript, res);
-  return res;
+  return [{ id, hydra, templateString, innerHydras }, ...res];
 }
 
 function _updateAndRegisterScript(motherScript, template) {
   template.innerHydras = template.innerHydras.map(({ id, path, hydra }) => ({ id, path, hydra }));
   motherScript.textContent += `register(${POJO.stringify(template, null, 2, 120)});\n\n`;
-  register(template);
+  // register(template);
 }
 
 export function compile(rootNode, motherScript) {
@@ -57,7 +60,11 @@ export function compile(rootNode, motherScript) {
   const res = [];
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
-      res.push(_compile(n, motherScript));
+      res.push(..._compile(n, motherScript));
+  for (let i = res.length - 1; i >= 0; i--) {
+    _updateAndRegisterScript(motherScript, res[i]);
+    register(res[i]);
+  }
   return res;
 }
 export function compileString(txt, motherScript) {
