@@ -50,7 +50,7 @@ function templateToString(template) {
   }, null, 2, 120);
 }
 
-export function compile(rootNode, motherScript) {
+export function compile(rootNode) {
   if (!(rootNode instanceof Node))
     throw new Error("rootNode must be a DOM node");
   const res = [];
@@ -59,12 +59,10 @@ export function compile(rootNode, motherScript) {
       res.push(..._compile(n));
   return res;
 }
-export function compileString(txt, motherScript) {
-  if (!txt.startsWith("<!--:: "))
-    txt = `<!--:: ; -->${txt}<!--::-->`;
+export function compileString(txt) {
   const tmpl = document.createElement("template");
   tmpl.innerHTML = txt;
-  return compile(tmpl.content, motherScript);
+  return compile(tmpl.content);
 }
 
 (function autoCompile() {
@@ -85,7 +83,7 @@ export function compileString(txt, motherScript) {
   const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
   compileScript.textContent = `import { register } from "${path}";\n\n`;
   const root = document.querySelector(sp.qs ?? "body");
-  const res = compile(root, compileScript);
+  const res = compile(root);
   for (let i = res.length - 1; i >= 0; i--) {
     compileScript.textContent += `register(${templateToString(res[i])});\n\n`;
     register(res[i]);
