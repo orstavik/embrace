@@ -2,6 +2,11 @@ import { getDefinition, findRunnableTemplates, getInstance } from "./DD6.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
+// function getInstance(...args) {
+//   debugger;
+//   return gi(...args);
+// }
+
 function moveNodes(first, last, target) {
   for (let n = first, next; n != last; n = next)
     next = n.nextSibling, target.after(n), (target = n);
@@ -116,7 +121,7 @@ class StampGroup {
         newStamps.push(...stamps);
         fillables.push(...stamps);
       } else if (a.length) {
-        //make Stamps reusable, ie. add .last to mark the last node belonging to the stamp.
+        //makes Stamps reusable by adding .last= "last content node of the stamp"
         for (let i = 0; i < a.length; i++)
           this.#stamps[i].last = (this.#stamps[i + 1]?.start ?? this.#end).previousSibling;
         reusables.push(...this.#stamps.splice(0, a.length));
@@ -202,13 +207,13 @@ class StampMap {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-//-1: we need to fix the first path being from the start node, not the parent. or.. do we? nah. we don't. since we are using nodePos, and not the path.
 //todo 0: class for the Def. Call it StampType.
 //todo 1: make a test for the extractUnusedInnerReusables(Def). This will require reuse of common template ids.
 //        this is actually a little tricky. We can reuse the same dom if the insides of the templates are identical, 
 //        regardless of the if and for. This means that we actually would like the start and end nodes not be part of the same system.
-//todo 2: make the simple Renderer follow the same logic.
+//todo 2: make the simple Renderer use DD6 and DDCompile6.
 //todo 3: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
+//todo 4: remove the start and end node from the template type again?
 
 function reuseAndInstantiateIndividualStamps(todos) {
   let globalNotUsed = new UnusedStampsMap();
