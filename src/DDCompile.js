@@ -17,7 +17,7 @@ function pathFunction(start) {
 //1. it runs recursively, so innerTemplates are discovered.
 //2. each template that is compiled is *both* registered and written to the motherScript.
 
-function _compile({ start, id, end }, motherScript) {
+function _compile({ start, id, end }) {
   const res = [];
   const templEl = document.createElement("template");
   templEl.content.append(document.createComment("::,"));
@@ -32,7 +32,7 @@ function _compile({ start, id, end }, motherScript) {
     else if (!inner.end)
       innerHydras.push({ path, hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() })
     else {
-      const innerTemplates = _compile(inner, motherScript);
+      const innerTemplates = _compile(inner);
       innerHydras.push({ path, ...innerTemplates[0] });
       res.push(...innerTemplates);
     }
@@ -60,7 +60,7 @@ export function compile(rootNode, motherScript) {
   const res = [];
   for (let n of findDollarDots(rootNode))
     if (n.end && !n.id)
-      res.push(..._compile(n, motherScript));
+      res.push(..._compile(n));
   for (let i = res.length - 1; i >= 0; i--) {
     _updateAndRegisterScript(motherScript, res[i]);
     register(res[i]);
