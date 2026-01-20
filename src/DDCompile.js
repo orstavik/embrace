@@ -18,30 +18,27 @@ function pathFunction(start) {
 //2. each template that is compiled is *both* registered and written to the motherScript.
 
 function _compile({ start, id, end }, motherScript) {
-  const path = pathFunction(start);
-  if (!end)
-    return { path, hydra: Function("return " + "$ => `" + start.nodeValue + "`")() };
-  if (id)
-    return { path, id };
-
   const templEl = document.createElement("template");
+  templEl.content.append(document.createComment("::,"));
   while (start.nextSibling != end)
     templEl.content.append(start.nextSibling);
 
   const innerHydras = [];
-  for (let inner of findDollarDots(templEl.content))
-    innerHydras.push(_compile(inner, motherScript));
-
-  templEl.content.prepend(start.cloneNode());
-  for (let inner of innerHydras)
-    inner.path[0] += 1;
+  for (let inner of findDollarDots(templEl.content)) {
+    const path = pathFunction(inner.start);
+    const innerT =
+      inner.id ? { path, id } :
+        !inner.end ? { path, hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() } :
+          { path, ..._compile(inner, motherScript) };
+    innerHydras.push(innerT);
+  }
 
   const templateString = templEl.innerHTML;
   const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;
 
-  const res = { path, id, hydra, templateString, innerHydras };
+  const res = { id, hydra, templateString, innerHydras };
   _updateAndRegisterScript(motherScript, res);
   return res;
 }
