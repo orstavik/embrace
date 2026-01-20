@@ -58,6 +58,7 @@
     <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
 
     <script type="module">
+        import { register } from "/src/DD.js";
         import { compileString } from "/src/DDCompile.js";
         import { renderUnder } from "/src/DDRender.js";
 
@@ -87,8 +88,11 @@
                 await new Promise(resolve => requestAnimationFrame(resolve));
             const header = compileString(headerTxt, motherScript);
             const footer = compileString(footerTxt, motherScript);
-            document.getElementById('header').innerHTML = `<!--:: ${header.id}--><!--::-->`;
-            document.getElementById('footer').innerHTML = `<!--:: ${footer.id}--><!--::-->`;
+            // for (let t of header.reverse()) register(t);
+            // for (let t of footer.reverse()) register(t);
+            debugger
+            document.getElementById('header').innerHTML = `<!--:: ${header[0].id}--><!--::-->`;
+            document.getElementById('footer').innerHTML = `<!--:: ${footer[0].id}--><!--::-->`;
 
             renderUnder(document.getElementById("app"), data);
         }
