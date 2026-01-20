@@ -6,10 +6,10 @@ function mapInnerDefs(innerHydras) {
     if (innerHydras[i].Def) {
       res.set(innerHydras[i].Def, [[i]]);
       for (let innerInnerDef of innerHydras[i].Def.innerDefs.keys()) {
-        const innerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+        const innerInnerDefPositions = res.get(innerInnerDef);
         if (innerInnerDefPositions) {
           const innerInnerDefPositionsFromOuterPointOfView = innerInnerDefPositions.map(pos => [i, ...pos]);
-          let myInnerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+          let myInnerInnerDefPositions = res.get(innerInnerDef);
           myInnerInnerDefPositions ?
             myInnerInnerDefPositions.push(...innerInnerDefPositionsFromOuterPointOfView) :
             res.set(innerInnerDef, innerInnerDefPositionsFromOuterPointOfView);
