@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>10 - JS Methods</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        pre {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #38bdf8;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <div class="section">
+            <h3>JSON Stringify</h3>
+            <pre>${JSON.stringify($.user, null, 2)}</pre>
+        </div>
+
+        <div class="section">
+            <h3>Object Keys</h3>
+            <p>User keys: ${Object.keys($.user).join(', ')}</p>
+            <p>Role uppercase: ${$.user.role.toUpperCase()}</p>
+        </div>
+
+        <div class="section">
+            <h3>Array Methods</h3>
+            <p>Sum: ${$.items.reduce((a, b) => a + b, 0)}</p>
+            <p>Filtered ( > 3): ${$.items.filter(x => x > 3).join(' | ')}</p>
+        </div>
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "items": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "user": {
+                "id": 101,
+                "name": "Test User",
+                "role": "admin"
+            }
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

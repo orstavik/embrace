@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD6.js";
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
 
 function replaceNodesBetween(start, end, ...nodes) {
   while (start.nextSibling != end)

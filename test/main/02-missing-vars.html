@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>02 - Missing Variables</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .value {
+            color: #38bdf8;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <div class="container">
+            <h2>Testing Missing/Null Variables</h2>
+            <div class="item">
+                <span class="label">Existing:</span> <span class="value">${$.existing}</span>
+            </div>
+            <div class="item">
+                <span class="label">Missing (should be empty):</span> <span class="value">"${$.missing || ''}"</span>
+            </div>
+            <div class="item">
+                <span class="label">Null (should be empty):</span> <span class="value">"${$.nullVal || ''}"</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "existing": "I am here",
+            "nullVal": null
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

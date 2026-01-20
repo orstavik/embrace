@@ -1,0 +1,18 @@
+<div id="app">
+  <!--:: ;-->
+  <h1>hello sunshine</h1>
+  <ol>
+    <li>a: ${$.a}</li>
+    <li>b: ${$.b}</li>
+  </ol>
+</div>
+
+<script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+<script type="module">
+  import { renderUnder } from "/src/DDRender.js";
+  renderUnder(document.getElementById("app"), { a: "one", b: "two" });
+
+  setTimeout(_ => {
+    renderUnder(document.getElementById("app"), { a: "three", b: "four" });
+  }, 2000);
+</script>

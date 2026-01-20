@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>13 - Boolean Logic</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .badge {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: if($.age >= 18 && $.verified) -->
+        <div class="badge">✅ Access Granted: Adult & Verified</div>
+        <!--::-->
+
+        <!--:: if($.age < 18 || !$.verified) -->
+        <div class="badge">❌ Access Denied</div>
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "age": 21,
+            "verified": true
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

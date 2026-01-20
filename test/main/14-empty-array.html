@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>14 - Empty Array</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .empty-msg {
+            color: #94a3b8;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <ul>
+            <!--:: for($.item of $.items) -->
+            <li>${$.item}</li>
+            <!--::-->
+        </ul>
+        <!--:: if($.items.length === 0) -->
+        <p class="empty-msg">No items found in the list.</p>
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "items": []
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>
