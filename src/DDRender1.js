@@ -1,23 +1,28 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
+import { getDefinition, findRunnableTemplates, getInstance } from "./DD6.js";
 
 function replaceNodesBetween(start, end, ...nodes) {
   while (start.nextSibling != end)
     start.nextSibling.remove();
-  start.after(...nodes);
+  const newNodes = [];
+  for (let n of nodes)
+    for (; n; n = n.nextSibling)
+      newNodes.push(n);
+  start.after(...newNodes);
 }
 
 function render(state, start, end, Def) {
-  const $ = Object.assign({}, state);
-  const newNodes = [];
+  const $ = Object.assign(Array.isArray(state) ? [] : {}, state);
+  const starts = [];
   Def.hydra($, function run() {
-    const { nodes, innerHydras } = getInstance(Def);
+    const { start, nodes, innerHydras } = getInstance(Def);
     for (let { node, hydra, Def } of innerHydras)
       Def ?
         render($, node, node.nextSibling, Def) :
         node.nodeValue = hydra($);
-    newNodes.push(...nodes);
+    start.nodeValue = "::,";
+    starts.push(start);
   });
-  replaceNodesBetween(start, end, ...newNodes);
+  replaceNodesBetween(start, end, ...starts);
 }
 
 export function renderUnder(root, state) {
