@@ -202,13 +202,6 @@ class StampMap {
 const IdenticalValues = (f, r) => f.value === r.value;
 const IdenticalInnerArrays = (f, r) => f.value.every((v, i) => typeof v === 'string' || v === r.value[i])
 
-//todo 0: class for the Def. Call it StampType.
-//todo 1: make a test for the extractUnusedInnerReusables(Def). This will require reuse of common template ids.
-//        this is actually a little tricky. We can reuse the same dom if the insides of the templates are identical, 
-//        regardless of the if and for. This means that we actually would like the start and end nodes not be part of the same system.
-//todo 2: fix the getInstance function so it is also a Stamp. That way we can hide #nodes and #start in the Stamp.
-//todo 3: remove the start from the template type again?
-
 function reuseAndInstantiateIndividualStamps(todos) {
   let globalNotUsed = new UnusedStampsMap();
   let todo;
