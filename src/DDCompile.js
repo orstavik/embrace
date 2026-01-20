@@ -25,11 +25,11 @@ function _compile({ start, id, end }, motherScript) {
 
   const innerHydras = [];
   for (let inner of findDollarDots(templEl.content)) {
-    const path = pathFunction(inner.start);
     const innerT =
-      inner.id ? { path, id } :
-        !inner.end ? { path, hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() } :
-          { path, ..._compile(inner, motherScript) };
+      inner.id ? { id } :
+        !inner.end ? { hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() } :
+          { ..._compile(inner, motherScript) };
+    innerT.path = pathFunction(inner.start);
     innerHydras.push(innerT);
   }
 
