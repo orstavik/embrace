@@ -1,5 +1,25 @@
 const dollarDots = {};
 
+function mapInnerDefs(innerHydras) {
+  const res = new Map();
+  for (let i = 0; i < innerHydras.length; i++) {
+    if (innerHydras[i].Def) {
+      res.set(innerHydras[i].Def, [[i]]);
+      for (let innerInnerDef of innerHydras[i].Def.innerDefs.keys()) {
+        const innerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+        if (innerInnerDefPositions) {
+          const innerInnerDefPositionsFromOuterPointOfView = innerInnerDefPositions.map(pos => [i, ...pos]);
+          let myInnerInnerDefPositions = template.innerDefs.get(innerInnerDef);
+          myInnerInnerDefPositions ?
+            myInnerInnerDefPositions.push(...innerInnerDefPositionsFromOuterPointOfView) :
+            res.set(innerInnerDef, innerInnerDefPositionsFromOuterPointOfView);
+        }
+      }
+    }
+  }
+  return res;
+}
+
 export function register(template) {
   dollarDots[template.id] = template;
   const el = document.createElement("template");
@@ -13,22 +33,7 @@ export function register(template) {
     Def: getDefinition(id),
   }));
   template.position = Object.keys(dollarDots).length;
-  template.innerDefs = new Map();
-  for (let i = 0; i < template.innerHydras.length; i++) {
-    if (template.innerHydras[i].Def) {
-      template.innerDefs.set(template.innerHydras[i].Def, [[i]]);
-      for (let innerInnerDef of template.innerHydras[i].Def.innerDefs.keys()) {
-        const innerInnerDefPositions = template.innerDefs.get(innerInnerDef);
-        if (innerInnerDefPositions) {
-          const innerInnerDefPositionsFromOuterPointOfView = innerInnerDefPositions.map(pos => [i, ...pos]);
-          let myInnerInnerDefPositions = template.innerDefs.get(innerInnerDef);
-          myInnerInnerDefPositions ?
-            myInnerInnerDefPositions.push(...innerInnerDefPositionsFromOuterPointOfView) :
-            template.innerDefs.set(innerInnerDef, innerInnerDefPositionsFromOuterPointOfView);
-        }
-      }
-    }
-  }
+  template.innerDefs = mapInnerDefs(template.innerHydras);
 }
 
 export function getDefinition(id) {
@@ -40,12 +45,16 @@ const resolvePath = (root, path) => path.reduce((n, i) =>
 
 export function getInstance(Def) {
   const root = Def.docFrag.cloneNode(true);
-  const innerHydras = Def.innerHydras.map(({ Def, path, hydra }) =>
-    ({ Def, hydra, node: resolvePath(root, path) }));
+  const nodes = Def.innerHydras.map(({ path, Def }) => {
+    const start = resolvePath(root, path);
+    const end = Def ? start.nextSibling : undefined;
+    return { start, end };
+  });
+  const innerHydras = Def.innerHydras;
   return {
     start: root.firstChild,
-    innerHydras, nodes:
-      innerHydras.map(({ Def, hydra, node }) => ({ start: node, end: Def ? node.nextSibling : undefined }))
+    innerHydras,
+    nodes,
   };
 }
 

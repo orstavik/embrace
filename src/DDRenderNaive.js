@@ -15,10 +15,10 @@ function render(state, start, end, Def) {
   const starts = [];
   Def.hydra($, function run() {
     const { start, nodes, innerHydras } = getInstance(Def);
-    for (let { node, hydra, Def } of innerHydras)
+    for (let [i, { hydra, Def }] of innerHydras.entries())
       Def ?
-        render($, node, node.nextSibling, Def) :
-        node.nodeValue = hydra($);
+        render($, nodes[i].start, nodes[i].end, Def) :
+        nodes[i].start.nodeValue = hydra($);
     start.nodeValue = "::,";
     starts.push(start);
   });
