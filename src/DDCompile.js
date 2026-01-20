@@ -13,10 +13,7 @@ function pathFunction(start) {
   return res;
 }
 
-//_compileTemplateNode is dirty!
-//1. it runs recursively, so innerTemplates are discovered.
-//2. each template that is compiled is *both* registered and written to the motherScript.
-
+//runs recursively and discovers innerTemplates
 function _compile({ start, id, end }) {
   const res = [];
   const templEl = document.createElement("template");
@@ -41,7 +38,7 @@ function _compile({ start, id, end }) {
   const templateString = templEl.innerHTML;
   const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
-  start.nodeValue = ":: " + id;
+  start.nodeValue = ":: " + id;   //att!! mutates the start.nodeValue!!!
 
   return [{ id, hydra, templateString, innerHydras }, ...res];
 }
