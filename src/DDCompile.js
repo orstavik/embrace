@@ -28,7 +28,7 @@ function _compile({ start, id, end }, motherScript) {
     const innerT =
       inner.id ? { id } :
         !inner.end ? { hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() } :
-          { ..._compile(inner, motherScript) };
+          _compile(inner, motherScript);
     innerT.path = pathFunction(inner.start);
     innerHydras.push(innerT);
   }
