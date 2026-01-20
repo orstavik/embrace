@@ -50,7 +50,7 @@ function templateToString(template) {
   }, null, 2, 120);
 }
 
-export function compile(rootNode) {
+function compile(rootNode) {
   if (!(rootNode instanceof Node))
     throw new Error("rootNode must be a DOM node");
   const res = [];
@@ -59,7 +59,8 @@ export function compile(rootNode) {
       res.push(..._compile(n));
   return res;
 }
-export function compileString(txt) {
+
+function compileString(txt) {
   const tmpl = document.createElement("template");
   tmpl.innerHTML = txt;
   return compile(tmpl.content);
@@ -73,19 +74,24 @@ export function compileString(txt) {
   if (!hash)
     return;
   const sp = Object.fromEntries(new URLSearchParams(hash));
-  const compileScript = document.getElementById(sp.id ?? "DollarDotsCompile");
-  if (!compileScript) //if there is no script to compile anymore, then we assume we have already run.
+  const motherScript = document.getElementById(sp.id ?? "DollarDotsCompile");
+  if (!motherScript) //if there is no script to compile anymore, then we assume we have already run.
     return;
-  if (!(compileScript instanceof HTMLScriptElement))
+  if (!(motherScript instanceof HTMLScriptElement))
     throw new Error("compileScript must be a <script> element");
-  compileScript.type = "module";
-  compileScript.id = id;
+  motherScript.type = "module";
+  motherScript.id = id;
   const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
-  compileScript.textContent = `import { register } from "${path}";\n\n`;
+  motherScript.textContent = `import { register } from "${path}";\n\n`;
   const root = document.querySelector(sp.qs ?? "body");
-  const res = compile(root);
-  for (let i = res.length - 1; i >= 0; i--) {
-    compileScript.textContent += `register(${templateToString(res[i])});\n\n`;
-    register(res[i]);
+  const templates = compile(root);
+  for (let template of templates.reverse()) {
+    register(template);
+    motherScript.textContent += `register(${templateToString(template)});\n`;
   }
 })();
+
+export {
+  compile,
+  compileString,
+}
