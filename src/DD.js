@@ -45,17 +45,14 @@ const resolvePath = (root, path) => path.reduce((n, i) =>
 
 export function getInstance(Def) {
   const root = Def.docFrag.cloneNode(true);
+  const start = root.firstChild;
   const nodes = Def.innerHydras.map(({ path, Def }) => {
     const start = resolvePath(root, path);
     const end = Def ? start.nextSibling : undefined;
     return { start, end };
   });
   const innerHydras = Def.innerHydras;
-  return {
-    start: root.firstChild,
-    innerHydras,
-    nodes,
-  };
+  return { start, innerHydras, nodes };
 }
 
 export function findEndComment(start) {
