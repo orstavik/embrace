@@ -1,0 +1,31 @@
+<div id="app">
+  <h1>hello sunshine</h1>
+  <ol>
+    <!--:: for($.item of $)-->
+    <li>#: ${$.item.a}
+      <!--:: if($.item.b)-->
+      + ${$.item.b}
+      <!--::-->
+    </li>
+    <!--::-->
+  </ol>
+</div>
+
+<script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+<script type="module">
+  import { renderUnder } from "/src/DDRender.js";
+  renderUnder(document.getElementById("app"), [{ a: "alpha" }, { a: "beta", b: "beta2" }]);
+
+  setTimeout(_ => {
+    renderUnder(document.getElementById("app"), [{ a: "gamma" }, { a: "delta", b: "delta2" }]);
+  }, 1000);
+
+  setTimeout(_ => {
+    renderUnder(document.getElementById("app"), [{ a: "delta", b: "delta2" }, { a: "epsilon" }]);
+  }, 2000);
+
+  setTimeout(_ => {
+    renderUnder(document.getElementById("app"), [{ a: "epsilon" }]);
+  }, 3000);
+
+</script>

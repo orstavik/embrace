@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test 29 - Complex JS Expressions (Unshackled)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <div class="box">
+            <h2>User Info</h2>
+            <p>Role (uppercase): ${$.user.role.toUpperCase()}</p>
+            <p>Status: ${$.user.isPremium ? "Premium User" : "Standard User"}</p>
+        </div>
+
+        <div class="box">
+            <h2>Cart Summary</h2>
+            <ul>
+                <!--:: for($.item of $.cart) -->
+                <li>${$.item.name}: ${$.item.qty} x $${$.item.price} = $${$.item.qty * $.item.price}</li>
+                <!--::-->
+            </ul>
+            <p>Total Items: ${$.cart.reduce((sum, i) => sum + i.qty, 0)}</p>
+            <p>Total Value: $${$.cart.reduce((sum, i) => sum + i.qty * i.price, 0).toFixed(2)}</p>
+        </div>
+
+        <div class="box">
+            <h2>Special Prefixes (Optional)</h2>
+            <p>Admin Role: ${$.adminRole.toUpperCase()}</p>
+            <p>Global Role: ${$.globalRole.toUpperCase()}</p>
+        </div>
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+
+        const data = {
+            user: {
+                role: "administrator",
+                isPremium: true
+            },
+            cart: [
+                { name: "Apple", qty: 3, price: 0.5 },
+                { name: "Banana", qty: 2, price: 0.3 },
+                { name: "Cherry", qty: 10, price: 0.1 }
+            ],
+            adminRole: "SuperUser",
+            globalRole: "GlobalUser"
+        };
+
+        try {
+            renderUnder(document.getElementById("app"), data);
+        } catch (e) {
+            console.error("Embrace Error:", e);
+            document.body.insertAdjacentHTML('beforeend', `<p class="error">Embrace failed: ${e.message}</p>`);
+        }
+    </script>
+</body>
+
+</html>

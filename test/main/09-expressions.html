@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>09 - Expressions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .calc {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .highlight {
+            color: #4ade80;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <div class="calc">
+            <p>Price: $${$.price}</p>
+            <p>Quantity: ${$.quantity}</p>
+            <hr>
+            <p>Total: <span class="highlight">$${$.price * $.quantity}</span></p>
+            <p>Tax (10%): $${$.price * $.quantity * 0.1}</p>
+            <p>Grand Total: <span class="highlight">$${$.price * $.quantity * 1.1}</span></p>
+        </div>
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "price": 250,
+            "quantity": 4
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>

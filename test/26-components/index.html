@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>26 - Reusable Components & Code Splitting</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .controls {
+            margin-bottom: 40px;
+            text-align: center;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 8px;
+            color: #0f172a;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .user-card {
+            display: block;
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 20px;
+            border-radius: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .user-card:hover {
+            border-color: #38bdf8;
+        }
+
+        .avatar-circle {
+            width: 50px;
+            height: 50px;
+            background: #334155;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #38bdf8;
+        }
+
+        h3 {
+            margin: 0 0 5px 0;
+            color: #f8fafc;
+        }
+
+        .role {
+            color: #38bdf8;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <h1>Components & Code Splitting</h1>
+
+        <div class="controls">
+            <p style="margin-bottom: 15px;">Click the button to load and render the cards (mimicking async load).</p>
+            <button id="loadBtn">Load Components</button>
+        </div>
+
+        <div id="container" class="component-grid">
+            <!--:: for($.user of $.users) -->
+            <div class="user-card">
+                <div class="avatar-circle">${$.user.avatar}</div>
+                <h3>${$.user.name}</h3>
+                <div class="role">${$.formatRole($.user.role)}</div>
+                <p>${$.user.bio}</p>
+            </div>
+            <!--::-->
+        </div>
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+
+        // Initial State
+        const data = {
+            users: [],
+            formatRole: (role) => role ? role.toUpperCase() : ""
+        };
+
+        const appEl = document.getElementById("app");
+        renderUnder(appEl, data);
+
+        const loadBtn = document.getElementById('loadBtn');
+
+        loadBtn.addEventListener('click', () => {
+            loadBtn.disabled = true;
+            loadBtn.textContent = "Loading...";
+
+            // Simulate async loading
+            setTimeout(() => {
+                data.users = [
+                    {
+                        "id": 1,
+                        "name": "Alice Smith",
+                        "role": "Lead Architect",
+                        "avatar": "👩‍💻",
+                        "bio": "Building scalable template engines."
+                    },
+                    {
+                        "id": 2,
+                        "name": "Bob Jones",
+                        "role": "Senior Developer",
+                        "avatar": "👨‍💻",
+                        "bio": "Loves micro-frameworks and performance."
+                    }
+                ];
+
+                loadBtn.textContent = "Components Loaded";
+                renderUnder(appEl, data);
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

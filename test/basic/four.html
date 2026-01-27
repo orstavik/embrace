@@ -1,0 +1,26 @@
+<h1>hello</h1>
+<!--:: if($.header)  -->
+<h2 alice="${$.bob.join(',')}">hello ${$.sunshine}</h2>
+<h2>hello ${$.world}</h2>
+
+<!--:: if($ . text) for($.a of $.alice) for($.b of $.bob) -->
+<p>${$.text} - alice likes: ${$.a} bob likes: ${$.b}</p>
+<!--::-->
+
+<!--::-->
+<h2>world</h2>
+
+<script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#dd=/src/DD.js&id=DollarDotsCompile"></script>
+<script type="module">
+  import { renderUnder } from "/src/DDRender.js";
+
+  const state = Object.freeze({
+    sunshine: "sunny sunshine",
+    world: "beautiful world",
+    text: "text",
+    header: true,
+    bob: ["red", "green", "blue"],
+    alice: ["red", "green", "blue"],
+  });
+  renderUnder(document.body, state);
+</script>

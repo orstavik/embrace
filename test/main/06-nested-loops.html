@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>06 - Nested Loops</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 40px;
+        }
+
+        .group {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #818cf8;
+        }
+
+        .member {
+            background: #4280d8;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!--:: ; -->
+        <h1>Groups</h1>
+        <!--:: for($.group of $.groups) -->
+        <div class="group">
+            <h3>${$.group.name}</h3>
+            <!--:: for($.member of $.group.members) -->
+            <span class="member">${$.member}</span>
+            <!--::-->
+        </div>
+        <!--::-->
+        <!--::-->
+    </div>
+
+    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module">
+        import { renderUnder } from "/src/DDRender.js";
+        const data = {
+            "groups": [
+                {
+                    "name": "Group A",
+                    "members": [
+                        "Alice",
+                        "Bob"
+                    ]
+                },
+                {
+                    "name": "Group B",
+                    "members": [
+                        "Charlie",
+                        "David"
+                    ]
+                }
+            ]
+        };
+        renderUnder(document.getElementById("app"), data);
+    </script>
+</body>
+
+</html>
