@@ -1,4 +1,3 @@
-//making release
 function _maxWidth(txt, indent, maxWidth) {
   const R = new RegExp(`((\\n(?:${indent})+)[\\s\\S]*?)([\\[{]\\n[\\s\\S]*?\\2[\\]}])`, "g");
   const R2 = new RegExp(`\\n(${indent}*)`, "g");
