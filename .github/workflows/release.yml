@@ -2,10 +2,12 @@ name: Release on main script /*.js changes
 
 on:
   push:
+    branches:
+      - 'main'
     paths:
+      - 'src/**/*.js' 
       - '*.js'
-      - '*.js.map'
-      - 'test/all.html'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: write
@@ -17,10 +19,38 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    - name: Fetch tags
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Build, Commit and Push
       run: |
-        git fetch --tags
+        # 1. Build
+        npx -y rollup --input src/DD.js --file DD.js --format=esm --sourcemap --no-treeshake --preserveEntrySignatures=strict
+        npx -y rollup --input src/DDCompile.js --file DDCompile.js --format=esm --sourcemap --preserveEntrySignatures=strict
+        npx -y rollup --input src/DDauto.js --file DDauto.js --format=esm --sourcemap --preserveEntrySignatures=strict
+        
+        # 2. Configure Git
+        git config --local user.email "action@github.com"
+        git config --local user.name "github-actions"
+        
+        # 3. Stage files
+        git add DD.js DD.js.map DDCompile.js DDCompile.js.map DDauto.js DDauto.js.map
+        
+        # 4. Guard Clause: Check for changes
+        if git diff --staged --quiet; then
+          echo "No changes. Skipping commit and push."
+          exit 0
+        fi
+
+        # 5. Commit, Rebase, Push (Only runs if we didn't exit above)
+        git commit -m "chore: automated build update [skip ci]"
+        git pull --rebase --autostash origin main
+        git push origin HEAD:${{ github.ref }}
 
     - name: Create date-fifo tag
       id: find_date_fifo
@@ -36,10 +66,13 @@ jobs:
         for TAG in "${TAGS[@]}"; do
           if ! git tag -l | grep -q "^$TAG$"; then
             echo "Found tag: $TAG"
+            git tag $TAG
+            git push origin $TAG
             echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
             exit 0
           fi
         done
+
         echo "creating date-fifo release tag number failed."
         exit 1
 
