@@ -1,4 +1,4 @@
-import { compile, templateToString } from "./DDCompile.js";
+import { compile, templateToString } from "./DDcompile.js";
 
 let scriptCount = 0;
 function compileToScript() {

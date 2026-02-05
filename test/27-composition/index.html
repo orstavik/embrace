@@ -57,9 +57,9 @@
     <!-- The compiled template code will be injected here by compile() -->
     <script type="module" src="/src/DDauto.js"></script>
     <script type="module">
-        import { renderUnder, getDefinitions } from "/src/DDRender.js";
+        import { renderUnder, getDefinitions } from "/src/DDrender.js";
         import { register } from "/src/DD.js";
-        import { compileString } from "/src/DDCompile.js";
+        import { compileString } from "/src/DDcompile.js";
 
         while (!Object.keys(getDefinitions()).length)
             await new Promise(requestAnimationFrame);
