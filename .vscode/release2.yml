@@ -1,0 +1,54 @@
+name: Release on main script /*.js changes
+
+on:
+  push:
+    paths:
+      - '*.js'
+      - '*.js.map'
+      - 'test/all.html'
+
+permissions:
+  contents: write
+
+jobs:
+  release_job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Fetch tags
+      run: |
+        git fetch --tags
+
+    - name: Create date-fifo tag
+      id: find_date_fifo
+      run: |
+        TAGS=(
+          "$(date -u +'%y.%m')"
+          "$(date -u +'%y.%m.%d')"
+          "$(date -u +'%y.%m.%d.%H')"
+          "$(date -u +'%y.%m.%d.%H.%M')"
+          "$(date -u +'%y.%m.%d.%H.%M.%S')"
+        )
+
+        for TAG in "${TAGS[@]}"; do
+          if ! git tag -l | grep -q "^$TAG$"; then
+            echo "Found tag: $TAG"
+            echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
+            exit 0
+          fi
+        done
+        echo "creating date-fifo release tag number failed."
+        exit 1
+
+    - name: Create a Release
+      uses: elgohr/Github-Release-Action@v5
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        title: "Release ${{ env.RELEASE_TAG }}"
+        tag: "${{ env.RELEASE_TAG }}"
+
+

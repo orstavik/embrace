@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./DD.js";
 import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
 import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
 
@@ -245,8 +245,8 @@ export function renderUnder(root, state) {
   let stampGroups = rootStampGroups.get(root);
   if (!stampGroups) {
     stampGroups = [];
-    for (let { start, id, end } of findRunnableTemplates(root))
-      stampGroups.push(StampGroup.make(getDefinition(id), start, end));
+    for (let { start, id, end, Def = getDefinition(id) } of findRunnableTemplates(root))
+      stampGroups.push(StampGroup.make(Def, start, end));
     rootStampGroups.set(root, stampGroups);
   }
   const todos = new StampMap();
@@ -255,4 +255,7 @@ export function renderUnder(root, state) {
   reuseAndInstantiateIndividualStamps(todos);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
+  return todos.length;
 }
+
+export { getDefinitions };

@@ -51,9 +51,12 @@
         </div>
     </div>
 
-    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
+    <script type="module" src="/src/DDauto.js"></script>
     <script type="module">
-        import { renderUnder } from "/src/DDRender.js";
+        import { renderUnder, getDefinitions } from "/src/DDRender.js";
+
+        while (!Object.keys(getDefinitions()).length)
+            await new Promise(requestAnimationFrame);
         async function run() {
             const count = 1000;
             const data = {
