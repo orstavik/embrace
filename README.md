@@ -9,7 +9,7 @@ https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDRender.js
   src="https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDauto.js"></script>
 <script type="module">
   import { renderUnder, getDefinitions } 
-    from "https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDRender.js";
+    from "https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDrender.js";
 
   while (!Object.keys(getDefinitions()).length)
     await new Promise(requestAnimationFrame);
