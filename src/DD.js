@@ -21,7 +21,6 @@ function mapInnerDefs(innerHydras) {
 }
 
 export function register(template) {
-  dollarDots[template.id] = template;
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -34,10 +33,15 @@ export function register(template) {
   }));
   template.position = Object.keys(dollarDots).length;
   template.innerDefs = mapInnerDefs(template.innerHydras);
+  Object.freeze(dollarDots[template.id] = template);
 }
 
 export function getDefinition(id) {
   return dollarDots[id];
+}
+
+export function getDefinitions() {
+  return { ...dollarDots };
 }
 
 const resolvePath = (root, path) => path.reduce((n, i) =>

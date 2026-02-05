@@ -55,12 +55,14 @@
     </div>
 
     <!-- The compiled template code will be injected here by compile() -->
-    <script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#qs=#app&dd=/src/DD.js&id=DollarDotsCompile"></script>
-
+    <script type="module" src="/src/DDauto.js"></script>
     <script type="module">
+        import { renderUnder, getDefinitions } from "/src/DDRender.js";
         import { register } from "/src/DD.js";
         import { compileString } from "/src/DDCompile.js";
-        import { renderUnder } from "/src/DDRender.js";
+
+        while (!Object.keys(getDefinitions()).length)
+            await new Promise(requestAnimationFrame);
 
         // 1. Data
         const data = {
@@ -83,11 +85,12 @@
             const headerTxt = await (await fetch('./header.html?t=' + Date.now())).text();
             const footerTxt = await (await fetch('./footer.html?t=' + Date.now())).text();
 
-            let motherScript;
-            while (!(motherScript = document.getElementById("DollarDotsDefinition")))
-                await new Promise(resolve => requestAnimationFrame(resolve));
+            const motherScript = document.createElement("script");
+            motherScript.type = "module";
+            motherScript.src = "/src/DDCompile.js";
             const header = compileString(headerTxt, motherScript);
             const footer = compileString(footerTxt, motherScript);
+            document.head.appendChild(motherScript);
             for (let t of header.reverse()) register(t);
             for (let t of footer.reverse()) register(t);
             document.getElementById('header').innerHTML = `<!--:: ${header.at(-1).id}--><!--::-->`;

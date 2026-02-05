@@ -10,9 +10,12 @@
 <!--::-->
 <h2>world</h2>
 
-<script type="module" id="DollarDotsCompile" src="/src/DDCompile.js#dd=/src/DD.js&id=DollarDotsCompile"></script>
+<script type="module" src="/src/DDauto.js"></script>
 <script type="module">
-  import { renderUnder } from "/src/DDRender.js";
+  import { renderUnder, getDefinitions } from "/src/DDRender.js";
+
+  while (!Object.keys(getDefinitions()).length)
+    await new Promise(requestAnimationFrame);
 
   const state = Object.freeze({
     sunshine: "sunny sunshine",

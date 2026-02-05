@@ -66,32 +66,8 @@ function compileString(txt) {
   return compile(tmpl.content);
 }
 
-(function autoCompile() {
-  const id = "DollarDotsDefinition";
-  if (document.getElementById(id))
-    return; //we have already setup the motherScript, then we don't autocompile
-  const hash = new URL(import.meta.url).hash?.slice(1);
-  if (!hash)
-    return;
-  const sp = Object.fromEntries(new URLSearchParams(hash));
-  const motherScript = document.getElementById(sp.id ?? "DollarDotsCompile");
-  if (!motherScript) //if there is no script to compile anymore, then we assume we have already run.
-    return;
-  if (!(motherScript instanceof HTMLScriptElement))
-    throw new Error("compileScript must be a <script> element");
-  motherScript.type = "module";
-  motherScript.id = id;
-  const path = sp.dd ?? new URL("./DD6.js", import.meta.url);
-  motherScript.textContent = `import { register } from "${path}";\n\n`;
-  const root = document.querySelector(sp.qs ?? "body");
-  const templates = compile(root);
-  for (let template of templates.reverse()) {
-    register(template);
-    motherScript.textContent += `register(${templateToString(template)});\n`;
-  }
-})();
-
 export {
   compile,
   compileString,
+  templateToString,
 }
