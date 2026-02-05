@@ -30,8 +30,8 @@ jobs:
     - name: Build, Commit and Push
       run: |
         # 1. Build
-        npx -y rollup --input src/DD.js --file DD.js --format=esm --sourcemap --no-treeshake --preserveEntrySignatures=strict
-        npx -y rollup --input src/DDCompile.js --file DDCompile.js --format=esm --sourcemap --preserveEntrySignatures=strict
+        npx -y rollup --input src/DDrender.js --file DDrender.js --format=esm --sourcemap --no-treeshake --preserveEntrySignatures=strict
+        npx -y rollup --input src/DDcompile.js --file DDcompile.js --format=esm --sourcemap --preserveEntrySignatures=strict
         npx -y rollup --input src/DDauto.js --file DDauto.js --format=esm --sourcemap --preserveEntrySignatures=strict
         
         # 2. Configure Git
@@ -39,7 +39,7 @@ jobs:
         git config --local user.name "github-actions"
         
         # 3. Stage files
-        git add DD.js DD.js.map DDCompile.js DDCompile.js.map DDauto.js DDauto.js.map
+        git add DDrender.js DDrender.js.map DDcompile.js DDcompile.js.map DDauto.js DDauto.js.map
         
         # 4. Guard Clause: Check for changes
         if git diff --staged --quiet; then
