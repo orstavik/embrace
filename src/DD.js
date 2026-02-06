@@ -20,7 +20,7 @@ function mapInnerDefs(innerHydras) {
   return res;
 }
 
-export function register(template) {
+function register(template) {
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -36,18 +36,18 @@ export function register(template) {
   Object.freeze(dollarDots[template.id] = template);
 }
 
-export function getDefinition(id) {
+function getDefinition(id) {
   return dollarDots[id];
 }
 
-export function getDefinitions() {
+function getDefinitions() {
   return { ...dollarDots };
 }
 
 const resolvePath = (root, path) => path.reduce((n, i) =>
   typeof i == "string" ? n.getAttributeNode(i) : n.childNodes[i], root);
 
-export function getInstance(Def) {
+function getInstance(Def) {
   const root = Def.docFrag.cloneNode(true);
   const start = root.firstChild;
   const nodes = Def.innerHydras.map(({ path, Def }) => {
@@ -59,7 +59,7 @@ export function getInstance(Def) {
   return { start, innerHydras, nodes };
 }
 
-export function findEndComment(start) {
+function findEndComment(start) {
   const commas = [];
   for (let end = start.nextSibling, depth = 0; end; end = end.nextSibling)
     if (end.nodeType === Node.COMMENT_NODE) {
@@ -75,7 +75,7 @@ export function findEndComment(start) {
     }
 }
 
-export function* findDollarDots(node) {
+function* findDollarDots(node) {
   const traverser = document.createTreeWalker(node, NodeFilter.SHOW_ALL, null, false);
   for (let node; node = traverser.nextNode();) {
     const txt = node.nodeValue?.trim();
@@ -98,8 +98,18 @@ export function* findDollarDots(node) {
   }
 }
 
-export function* findRunnableTemplates(root) {
+function* findRunnableTemplates(root) {
   for (let n of findDollarDots(root))
     if (n.id)   //todo we need to retry not yet available templates
       yield n;
 }
+
+export {
+  register,
+  getDefinition,
+  getDefinitions,
+  getInstance,
+  findEndComment,
+  findDollarDots,
+  findRunnableTemplates
+};

@@ -239,7 +239,7 @@ function reuseAndInstantiateIndividualStamps(todos) {
 }
 
 let rootStampGroups = new WeakMap();
-export function renderUnder(root, state) {
+function renderUnder(root, state) {
 
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
   let stampGroups = rootStampGroups.get(root);
@@ -258,4 +258,7 @@ export function renderUnder(root, state) {
   return todos.length;
 }
 
-export { getDefinitions };
+export {
+  renderUnder,
+  getDefinitions
+};
