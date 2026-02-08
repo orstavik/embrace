@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./Core.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./core.js";
 
 function replaceNodesBetween(start, end, ...nodes) {
   while (start.nextSibling != end)

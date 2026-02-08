@@ -1,9 +1,48 @@
 # embrace
 
-Template engine 
+## How to load embrace and run embrace?
 
-https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDauto.js
-https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.05.09/DDRender.js
+```html
+<head>
+<link rel="modulepreload" href="https://esm.sh/gh/orstavik/embrace@26.02.08/src/DollarDots.js?external=Diff">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js">
+<script type="importmap">
+  {
+    "imports": {
+      "DollarDots": "https://esm.sh/gh/orstavik/embrace@26.02.08/src/DollarDots.js?external=Diff",
+      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
+    }
+  }
+</script>
+<script type="module" src="https://esm.sh/gh/orstavik/embrace@26.02.08/src/auto.js"></script>
+<script type="module">
+  import { renderUnder } from "DollarDots";
+
+  while (renderUnder(document.body, {data: 123}))
+    await new Promise(requestAnimationFrame);
+</script>
+</head>
+<body>
+<!-- :: if($.a) -->
+<ol>
+  <li>${$.a}</li>
+  <li>${$.b}</li>
+</ol>
+<!--::-->
+</body>
+```
+
+1. We use [esm.sh](https://esm.sh/) (that uses cloudflare cdn) to compact the library files. The advanced rendering relies on a Diff dependency.
+2. We have a `auto.js` compiler that will compile all templates inside `document.body` automatically at startup.
+3. To run the template engine in the browser, we add an `importmap` and a `script` that calls `renderUnder()`.
+
+## live demo in iframe
+
+<iframe src="/test/basic/one.html"></iframe>
+
+
+https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08/src/auto.js
+https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08/src/DollarDots.js
 
 <iframe srcdoc="
     <html>
