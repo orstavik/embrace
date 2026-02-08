@@ -1,21 +1,27 @@
-<div id="app">
-  <!--:: ;-->
-  <h1>hello sunshine</h1>
-  <ol>
-    <li>a: ${$.a}</li>
-    <li>b: ${$.b}</li>
-  </ol>
-</div>
+<h1>hello sunshine</h1>
+<!--:: ;-->
+<ol>
+  <li>a: ${$.a}</li>
+  <li>b: ${$.b}</li>
+</ol>
 
-<script type="module" src="/src/DDauto.js"></script>
-<script type="module">
-  import { renderUnder, getDefinitions } from "/src/DDRender.js";
 
-  while (!Object.keys(getDefinitions()).length)
-    await new Promise(requestAnimationFrame);
-  renderUnder(document.getElementById("app"), { a: "one", b: "two" });
-
-  setTimeout(_ => {
-    renderUnder(document.getElementById("app"), { a: "three", b: "four" });
-  }, 2000);
+<link rel="modulepreload" href="/src/DollarDots.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js">
+<script type="importmap" preload="Diff">
+  {
+    "imports": {
+      "DollarDots": "/src/DollarDots.js",
+      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
+    }
+  }
 </script>
+<script type="module">
+  import { renderUnder } from "DollarDots";
+
+  while (renderUnder(document.body, { a: "one", b: "two" }))
+    await new Promise(requestAnimationFrame);
+
+  setTimeout(_ => renderUnder(document.body, { a: "three", b: "four" }), 1000);
+</script>
+<script type="module" src="/src/auto.js"></script>

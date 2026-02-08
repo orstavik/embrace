@@ -1,4 +1,4 @@
-import { getDefinition, findRunnableTemplates, getInstance } from "./DD.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./Core.js";
 
 function replaceNodesBetween(start, end, ...nodes) {
   while (start.nextSibling != end)
@@ -25,7 +25,12 @@ function render(state, start, end, Def) {
   replaceNodesBetween(start, end, ...starts);
 }
 
-export function renderUnder(root, state) {
+function renderUnder(root, state) {
   for (let { start, id, end } of findRunnableTemplates(root))
     render(state, start, end, getDefinition(id));
 }
+
+export {
+  renderUnder,
+  getDefinitions,
+};

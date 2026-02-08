@@ -1,0 +1,41 @@
+name: Make release on every main push
+
+on:
+  push:
+    branches:
+      - 'main'
+
+permissions:
+  contents: write
+
+jobs:
+  release_job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Create date-fifo tag and release it
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAGS=(
+          "$(date -u +'%y.%m.%d')"
+          "$(date -u +'%y.%m.%d.%H')"
+          "$(date -u +'%y.%m.%d.%H.%M')"
+          "$(date -u +'%y.%m.%d.%H.%M.%S')"
+        )
+
+        for TAG in "${TAGS[@]}"; do
+          if ! git tag -l | grep -q "^$TAG$"; then
+            echo "Available tag found: $TAG"
+            gh release create "$TAG" \
+              --target "${{ github.sha }}" \
+              --title "$TAG"
+            exit 0
+          fi
+        done
+        exit 1

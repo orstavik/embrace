@@ -1,6 +1,6 @@
-import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./DD.js";
-import { FocusSelectionRestorer } from "./DDFocusRestorer.js";
-import { diffRaw as diff } from "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions, register } from "./Core.js";
+import { FocusSelectionRestorer } from "./FocusRestorer.js";
+import { diffRaw as diff } from "Diff";
 
 function moveNodes(first, last, target) {
   for (let n = first, next; n != last; n = next)
@@ -239,23 +239,31 @@ function reuseAndInstantiateIndividualStamps(todos) {
 }
 
 let rootStampGroups = new WeakMap();
-export function renderUnder(root, state) {
+/**
+ * @param {Node} root 
+ * @param {object} state 
+ * @returns {string|undefined} id of not (yet?) defined template
+ */
+function renderUnder(root, state) {
 
   const restoreFocus = root.contains(document.activeElement) && FocusSelectionRestorer(root);
   let stampGroups = rootStampGroups.get(root);
   if (!stampGroups) {
     stampGroups = [];
-    for (let { start, id, end, Def = getDefinition(id) } of findRunnableTemplates(root))
+    for (let { start, id, end, Def = getDefinition(id) } of findRunnableTemplates(root)) {
+      if (!Def) return id;
       stampGroups.push(StampGroup.make(Def, start, end));
-    rootStampGroups.set(root, stampGroups);
+    }
   }
+  if (!stampGroups.length)
+    return "nothing to render";
+  rootStampGroups.set(root, stampGroups);
   const todos = new StampMap();
   todos.addAll(stampGroups.map(g => g.update(renderDefValues(state, g.Def))));
 
   reuseAndInstantiateIndividualStamps(todos);
 
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
-  return todos.length;
 }
 
-export { getDefinitions };
+export { renderUnder, getDefinition, findRunnableTemplates, getInstance, getDefinitions, register };

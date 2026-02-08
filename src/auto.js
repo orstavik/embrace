@@ -1,6 +1,6 @@
-import { compile, templateToString } from "./DDcompile.js";
+import { compile, templateToString } from "./Compile.js";
 
-let scriptCount = 0;
+let i = 0;
 function compileToScript() {
   const res = document.createElement("script");
   res.type = "module";
@@ -10,10 +10,7 @@ function compileToScript() {
     .map(str => `register(${str});`)
     .join("\n");
   res.textContent =
-    `import { register } from "${new URL("./DD.js", import.meta.url)}";
-
-${templates}
-//# sourceURL=DDDefs${scriptCount++}.js`;
+    `import { register } from "DollarDots";\n\n${templates}\n//# sourceURL=DDDefs${i++}.js`;
   document.body.append(res);
 }
 

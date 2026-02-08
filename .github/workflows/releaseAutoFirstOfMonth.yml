@@ -1,0 +1,32 @@
+name: First of Month Release
+
+on:
+  schedule:
+    - cron: '1 0 1 * *'
+
+permissions:
+  contents: write
+
+jobs:
+  monthly_cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          fetch-depth: 0
+
+      - name: Check tags and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          echo "Latest tag found: $LAST_TAG"
+          if [ "${#LAST_TAG}" -le 5 ]; then
+             echo "$LAST_TAG is clean. No new release needed."
+             exit 0
+          fi
+          NEW_TAG=$(date -u +'%y.%m')
+          echo "Creating clean release: $NEW_TAG"
+          gh release create "$NEW_TAG" --target "${{ github.sha }}"
