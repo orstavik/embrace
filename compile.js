@@ -1,6 +1,6 @@
 //assume correct js inside the ${...} and <!--:: ... -->
-import POJO from "./POJO.js";
-import { findDollarDots } from "./Core.js";
+import POJO from "./src/POJO.js";
+import { findDollarDots } from "./src/core.js";
 
 function pathFunction(start) {
   const res = [];

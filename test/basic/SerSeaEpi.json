@@ -37,6 +37,28 @@
           ]
         }
       ]
+    },
+    {
+      "type": "series",
+      "title": "Superman",
+      "shortText": "nanananana superman.",
+      "seasons": [
+        {
+          "type": "season",
+          "title": "Hjelp! Superman",
+          "episodes": [
+            "episode_numero_uno"
+          ]
+        },
+        {
+          "type": "season",
+          "title": "Hjelp! Superman2",
+          "episodes": [
+            "episode_numero_dos",
+            "episode_numero_tres"
+          ]
+        }
+      ]
     }
   ],
   "producer": "DC Comics"

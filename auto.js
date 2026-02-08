@@ -1,4 +1,4 @@
-import { compile, templateToString } from "./Compile.js";
+import { compile, templateToString } from "./compile.js";
 
 let i = 0;
 function compileToScript() {

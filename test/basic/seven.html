@@ -25,18 +25,23 @@
   <!--::-->
 </div>
 
-<script type="module" src="/src/DDauto.js"></script>
+<script type="importmap">
+  {
+    "imports": {
+      "DollarDots": "/DollarDots.js?external=Diff",
+      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
+    }
+  }
+</script>
+<script type="module" src="/auto.js"></script>
 <script type="module">
-  import { renderUnder, getDefinitions } from "/src/DDRender.js";
-
-  while (!Object.keys(getDefinitions()).length)
-    await new Promise(requestAnimationFrame);
+  import { renderUnder } from "DollarDots";
 
   const data = await (await fetch("SerSeaEpi.json")).json();
-  renderUnder(document.getElementById("app"), data);
+  while (renderUnder(document.body, data))
+    await new Promise(requestAnimationFrame);
   setTimeout(_ => {
-    const data2 = { ...data };
-    data2.series = data2.series.reverse();
-    renderUnder(document.getElementById("app"), data2);
-  }, 5000);
+    data.series.reverse();
+    renderUnder(document.body, data);
+  }, 1000);
 </script>

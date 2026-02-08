@@ -1,5 +1,5 @@
-import { getDefinition, findRunnableTemplates, getInstance, getDefinitions, register } from "./Core.js";
-import { FocusSelectionRestorer } from "./FocusRestorer.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions, register } from "./src/core.js";
+import { FocusSelectionRestorer } from "./src/FocusRestorer.js";
 import { diffRaw as diff } from "Diff";
 
 function moveNodes(first, last, target) {
