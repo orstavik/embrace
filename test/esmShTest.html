@@ -1,0 +1,24 @@
+<script type="module">
+
+  async function onHashchange() {
+    const sp = new URLSearchParams(location.hash.slice(1));
+    const filename = sp.get("file") || "basic/one.html";
+    const esmPrefix = sp.get("esm") || "https://esm.sh/gh/orstavik/embrace@26.02.08.15"
+    const shouldBeHash = `file=${filename}&esm=${esmPrefix}`;
+    if (location.hash.slice(1) !== shouldBeHash)
+      return location.hash = shouldBeHash;
+
+    const txt = await (await fetch(filename)).text();
+    const body = txt.replaceAll(/"\/(DollarDots|auto)\.js/g, `"${esmPrefix}/$1.js`);
+    const inner = document.createElement("iframe");
+    inner.srcdoc = `<base href="${new URL(filename, location)}">${body}</base>`;
+    inner.style.width = "96vw";
+    inner.style.height = "96vh";
+    inner.style.border = "none";
+    inner.style.overflow = "scroll";
+    document.body.append(inner);
+  }
+
+  window.addEventListener("hashchange", onHashchange);
+  onHashchange();
+</script>
