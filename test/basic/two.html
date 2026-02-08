@@ -4,10 +4,8 @@
   <li>a: ${$.a}</li>
   <li>b: ${$.b}</li>
 </ol>
+<!--::-->
 
-
-<link rel="modulepreload" href="/DollarDots.js">
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js">
 <script type="importmap">
   {
     "imports": {
@@ -16,6 +14,7 @@
     }
   }
 </script>
+<script type="module" src="/auto.js"></script>
 <script type="module">
   import { renderUnder } from "DollarDots";
 
@@ -24,4 +23,3 @@
 
   setTimeout(_ => renderUnder(document.body, { a: "three", b: "four" }), 1000);
 </script>
-<script type="module" src="/auto.js"></script>

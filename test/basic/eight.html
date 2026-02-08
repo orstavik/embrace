@@ -18,18 +18,25 @@
   while (!Object.keys(getDefinitions()).length)
     await new Promise(requestAnimationFrame);
 
-  renderUnder(document.getElementById("app"), [{ a: "alpha" }, { a: "beta", b: "beta2" }]);
 
-  setTimeout(_ => {
-    renderUnder(document.getElementById("app"), [{ a: "gamma" }, { a: "delta", b: "delta2" }]);
-  }, 1000);
+</script>
 
-  setTimeout(_ => {
-    renderUnder(document.getElementById("app"), [{ a: "delta", b: "delta2" }, { a: "epsilon" }]);
-  }, 2000);
+<script type="importmap">
+  {
+    "imports": {
+      "DollarDots": "/DollarDots.js?external=Diff",
+      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
+    }
+  }
+</script>
+<script type="module" src="/auto.js"></script>
+<script type="module">
+  import { renderUnder } from "DollarDots";
 
-  setTimeout(_ => {
-    renderUnder(document.getElementById("app"), [{ a: "epsilon" }]);
-  }, 3000);
+  while (renderUnder(document.body, [{ a: "alpha" }, { a: "beta", b: "beta2" }]))
+    await new Promise(requestAnimationFrame);
 
+  setTimeout(_ => renderUnder(document.body, [{ a: "gamma" }, { a: "delta", b: "delta2" }]), 1000);
+  setTimeout(_ => renderUnder(document.body, [{ a: "delta", b: "delta2" }, { a: "epsilon" }]), 2000);
+  setTimeout(_ => renderUnder(document.body, [{ a: "epsilon" }]), 3000);
 </script>

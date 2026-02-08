@@ -10,12 +10,17 @@
 <!--::-->
 <h2>world</h2>
 
-<script type="module" src="/src/DDauto.js"></script>
+<script type="importmap">
+  {
+    "imports": {
+      "DollarDots": "/DollarDots.js?external=Diff",
+      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
+    }
+  }
+</script>
+<script type="module" src="/auto.js"></script>
 <script type="module">
-  import { renderUnder, getDefinitions } from "/src/DDRender.js";
-
-  while (!Object.keys(getDefinitions()).length)
-    await new Promise(requestAnimationFrame);
+  import { renderUnder } from "DollarDots";
 
   const state = Object.freeze({
     sunshine: "sunny sunshine",
@@ -25,5 +30,6 @@
     bob: ["red", "green", "blue"],
     alice: ["red", "green", "blue"],
   });
-  renderUnder(document.body, state);
+  while (renderUnder(document.body, state))
+    await new Promise(requestAnimationFrame);
 </script>
