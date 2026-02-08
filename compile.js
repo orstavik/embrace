@@ -2,6 +2,22 @@
 import POJO from "./src/POJO.js";
 import { findDollarDots } from "./src/core.js";
 
+function _compileTemplateString(expr) {
+  try {
+    return Function("return $ => `" + expr + "`")();
+  } catch (e) {
+    throw new SyntaxError(`JS templateString error:\n\n   ${expr}\n`);
+  }
+}
+
+function _compileTemplateHeader(expr) {
+  try {
+    return Function("return ($, $$) => {" + expr + " $$();}")();
+  } catch (e) {
+    throw new SyntaxError(`JS syntax error:\n\n   ${expr} cb();\n`);
+  }
+}
+
 function pathFunction(start) {
   const res = [];
   if (start instanceof Attr) {
@@ -27,7 +43,7 @@ function _compile({ start, id, end }) {
     if (inner.id)
       innerHydras.push({ id: inner.id, path });
     else if (!inner.end)
-      innerHydras.push({ path, hydra: Function("return " + "$ => `" + inner.start.nodeValue + "`")() })
+      innerHydras.push({ path, hydra: _compileTemplateString(inner.start.nodeValue) })
     else {
       const innerTemplates = _compile(inner);
       innerHydras.push({ path, ...innerTemplates[0] });
@@ -36,7 +52,7 @@ function _compile({ start, id, end }) {
   }
 
   const templateString = templEl.innerHTML;
-  const hydra = Function("return " + `($, $$) => {${start.nodeValue.slice(2).trim()} $$();}`)();
+  const hydra = _compileTemplateHeader(start.nodeValue.slice(2).trim());
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;   //att!! mutates the start.nodeValue!!!
 
