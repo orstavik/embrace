@@ -3,7 +3,7 @@
   async function onHashchange() {
     const sp = new URLSearchParams(location.hash.slice(1));
     const filename = sp.get("file") || "basic/one.html";
-    const esmPrefix = sp.get("esm") || "https://esm.sh/gh/orstavik/embrace@26.02.08.15"
+    const esmPrefix = sp.get("esm") || "https://esm.sh/gh/orstavik/embrace@26.02.08.14"
     const shouldBeHash = `file=${filename}&esm=${esmPrefix}`;
     if (location.hash.slice(1) !== shouldBeHash)
       return location.hash = shouldBeHash;
