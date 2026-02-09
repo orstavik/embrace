@@ -52,7 +52,7 @@ function _compile({ start, id, end }) {
   }
 
   const templateString = templEl.innerHTML;
-  const hydra = _compileTemplateHeader(start.nodeValue.slice(2).trim());
+  const hydra = _compileTemplateHeader(start.nodeValue.trim().slice(3).trim());
   id = "id_" + crypto.randomUUID().replace(/-/g, "");
   start.nodeValue = ":: " + id;   //att!! mutates the start.nodeValue!!!
 
