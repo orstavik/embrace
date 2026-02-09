@@ -152,6 +152,16 @@ To activate and render templates, we use `DollarDots.js`. The `DollarDots.js` ha
 To get everything to work (efficiently) in the browser, we need to use `modulepreload` and `importmap`. The registerAndRenderer should always be named `DollarDots` in the importmap as compiled code requires it.
 
 ## work in progress
+0. coordinate with DoubleDots and reset this back to fixing this issue.
+```js
+while (start.nextSibling != end) {
+  //templEl.content.append(start.nextSibling); 
+  //todo we should do the above this instead of cloning and removing.
+  //todo the problem is interoperability with DoubleDots for now.
+  templEl.content.append(start.nextSibling.cloneNode(true));
+  start.nextSibling.remove();
+}
+```
 1. class for the Def. Call it StampType.
 2. DDRender. The extractUnusedInnerReusables(Def) is untested!!
    make a test for the extractUnusedInnerReusables(Def). This will require reuse of common template ids.
