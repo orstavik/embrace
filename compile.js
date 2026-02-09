@@ -34,8 +34,13 @@ function _compile({ start, id, end }) {
   const res = [];
   const templEl = document.createElement("template");
   templEl.content.append(document.createComment("::,"));
-  while (start.nextSibling != end)
-    templEl.content.append(start.nextSibling);
+  while (start.nextSibling != end) {
+    //templEl.content.append(start.nextSibling); 
+    //todo we should do the above this instead of cloning and removing.
+    //todo the problem is interoperability with DoubleDots for now.
+    templEl.content.append(start.nextSibling.cloneNode(true));
+    start.nextSibling.remove();
+  }
 
   const innerHydras = [];
   for (let inner of findDollarDots(templEl.content)) {
