@@ -12,7 +12,7 @@
           <!--:: if(($.season_i + 1) % 2) -->
           <ol>
             <!--:: for([$.episode_i, $.episode] of $.season.episodes.entries()) -->
-            <!-- {{JSON.stringify(season, null, 2)}} -->
+            <!-- ${JSON.stringify($.season, null, 2)} -->
             <li>episode #${$.episode_i + 1}: ${$.episode} produced by ${$.producer}.</li>
             <!--::-->
           </ol>
