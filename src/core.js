@@ -36,6 +36,17 @@ function register(template) {
   Object.freeze(dollarDots[template.id] = template);
 }
 
+const globalRegistry = globalThis.DollarDots ??= [];
+for (let template of globalRegistry) {
+  register(template);
+}
+globalRegistry.push = function(...templates) {
+  for (let template of templates) {
+    register(template);
+  }
+  return Array.prototype.push.apply(this, templates);
+};
+
 function getDefinition(id) {
   return dollarDots[id];
 }
