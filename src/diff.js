@@ -123,22 +123,3 @@ export function diffRaw(A, B) {
   }
   return hackFix(res) ?? res;
 }
-
-function secondStep(diffs) {
-  return diffs
-    .flatMap(p => p.a === p.b || !p.a || !p.b ? p : diffRaw(p.a, p.b))
-    .map(p => ({ ...p, a: p.a?.join(""), b: p.b?.join("") }));
-}
-
-export function diff(A, B) {
-  if (A instanceof Array || B instanceof Array || (A.length * B.length) < 1_000_000)
-    return diffRaw(A, B);
-  const Aw = A.split(/(\s+)/), Bw = B.split(/(\s+)/);
-  Aw[0] === "" && Aw.shift();
-  Bw[0] === "" && Bw.shift();
-  Aw[Aw.length - 1] === "" && Aw.pop();
-  Bw[Bw.length - 1] === "" && Bw.pop();
-  if ((Aw.length * Bw.length) < 1_000_000)
-    return secondStep(diffRaw(Aw, Bw));
-  return secondStep(diffRaw(A.split(/(\r?\n)/), B.split(/(\r?\n)/)));
-}

@@ -26,7 +26,7 @@
    * https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08.14/auto.js
    * https://esm.sh/gh/orstavik/embrace@26.02.08.14/DollarDots.js
    * https://esm.sh/gh/orstavik/embrace@26.02.08.14/compile.js
-2. The `auto.js` compiles all the templates inside `document.body` automatically at startup and register them using `(globalThis.DollarDots ??= Object.create(null)).push?.(def)`.
+2. The `auto.js` compiles all the templates inside `document.body` automatically at startup and register them using `(globalThis.DollarDots ??= Object.create(null)).push?.(def) ?? Object.assign(...)`.
 3. To run the template engine in the browser, use `import { renderUnder } from "https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08.14/DollarDots.js";` and then call `renderUnder(domNode, state)`. If you use the same `domNode` on a later call, the templates will be reused.
 
 ## live demo in iframe
