@@ -36,16 +36,24 @@ function register(template) {
   Object.freeze(dollarDots[template.id] = template);
 }
 
-const globalRegistry = globalThis.DollarDots ??= [];
-for (let template of globalRegistry) {
-  register(template);
+const globalRegistry = globalThis.DollarDots ??= Object.create(null);
+for (let key in globalRegistry) {
+  if (globalRegistry[key]?.id) register(globalRegistry[key]);
 }
-globalRegistry.push = function(...templates) {
-  for (let template of templates) {
-    register(template);
-  }
-  return Array.prototype.push.apply(this, templates);
-};
+Object.defineProperty(globalRegistry, 'push', {
+  value: function(...templates) {
+    for (let template of templates) {
+      if (template?.id) {
+        this[template.id] = template;
+        register(template);
+      }
+    }
+    return Object.keys(this).length;
+  },
+  enumerable: false,
+  configurable: true,
+  writable: true
+});
 
 function getDefinition(id) {
   return dollarDots[id];

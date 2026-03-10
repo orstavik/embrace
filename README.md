@@ -26,7 +26,7 @@
    * https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08.14/auto.js
    * https://esm.sh/gh/orstavik/embrace@26.02.08.14/DollarDots.js
    * https://esm.sh/gh/orstavik/embrace@26.02.08.14/compile.js
-2. The `auto.js` compiles all the templates inside `document.body` automatically at startup and register them using `(globalThis.DollarDots ??= []).push(def)`.
+2. The `auto.js` compiles all the templates inside `document.body` automatically at startup and register them using `(globalThis.DollarDots ??= Object.create(null)).push?.(def)`.
 3. To run the template engine in the browser, use `import { renderUnder } from "https://cdn.jsdelivr.net/gh/orstavik/embrace@26.02.08.14/DollarDots.js";` and then call `renderUnder(domNode, state)`. If you use the same `domNode` on a later call, the templates will be reused.
 
 ## live demo in iframe
@@ -74,7 +74,7 @@ To generate compiled template definitions, you can use the `Compile.js` or `auto
 <script type="module" src="/auto.js"></script>
 <!-- produces and adds dynamically a script that looks something like this: -->
 <script>
-(globalThis.DollarDots ??= []).push({
+(globalThis.DollarDots ??= Object.create(null)).push?.({
   id: "id_0b172ff5809b4629bbb964a304bb0034",
   hydra: ($, $$) => {for([$.episode_i, $.episode] of $.season.episodes.entries()) $$();},
   templateString: "<!--::,-->\n            <!-- ${JSON.stringify($.season, null, 2)} -->\n            <li>episode #${$.episode_i + 1}: ${$.episode} produced by ${$.producer}.</li>\n            ",
@@ -94,7 +94,7 @@ To generate compiled template definitions, you can use the `Compile.js` or `auto
       hydra: ($, $$) => {for([$.episode_i, $.episode] of $.season.episodes.entries()) $$();}
     }
   ]
-});
+}) ?? Object.assign(globalThis.DollarDots, Object.fromEntries([{...}].map(t => [t.id, t])));
 //# sourceURL=DDDefs0.js
 </script>
 ```
