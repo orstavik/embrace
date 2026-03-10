@@ -1,4 +1,5 @@
-const dollarDots = {};
+let i = 0;
+const dollarDots = globalThis.DollarDots ??= Object.create(null);
 
 function mapInnerDefs(innerHydras) {
   const res = new Map();
@@ -21,6 +22,7 @@ function mapInnerDefs(innerHydras) {
 }
 
 function register(template) {
+  if (template.docFrag) return;
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -31,32 +33,18 @@ function register(template) {
     hydra,
     Def: getDefinition(id),
   }));
-  template.position = Object.keys(dollarDots).length;
+  template.position = i++;
   template.innerDefs = mapInnerDefs(template.innerHydras);
-  Object.freeze(dollarDots[template.id] = template);
+  dollarDots[template.id] = template;
+  Object.freeze(template);
 }
-
-const globalRegistry = globalThis.DollarDots ??= Object.create(null);
-for (let key in globalRegistry) {
-  if (globalRegistry[key]?.id) register(globalRegistry[key]);
-}
-Object.defineProperty(globalRegistry, 'push', {
-  value: function(...templates) {
-    for (let template of templates) {
-      if (template?.id) {
-        this[template.id] = template;
-        register(template);
-      }
-    }
-    return Object.keys(this).length;
-  },
-  enumerable: false,
-  configurable: true,
-  writable: true
-});
 
 function getDefinition(id) {
-  return dollarDots[id];
+  const template = dollarDots[id];
+  if (template && !template.docFrag) {
+    register(template);
+  }
+  return template;
 }
 
 function getDefinitions() {

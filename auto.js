@@ -9,7 +9,7 @@ function compileToScript() {
     .join(",\n");
   if (templates) {
     res.textContent =
-      `(globalThis.DollarDots ??= Object.create(null)).push?.(\n${templates}\n) ?? Object.assign(globalThis.DollarDots, Object.fromEntries([\n${templates}\n].map(t => [t.id, t])));\n//# sourceURL=DDDefs${i++}.js`;
+      `Object.assign(globalThis.DollarDots ??= Object.create(null), Object.fromEntries([\n${templates}\n].map(t => [t.id, t])));\n//# sourceURL=DDDefs${i++}.js`;
     document.body.append(res);
   }
 }
