@@ -1,4 +1,3 @@
-let i = 0;
 const dollarDots = globalThis.DollarDots ??= Object.create(null);
 
 function mapInnerDefs(innerHydras) {
@@ -22,7 +21,6 @@ function mapInnerDefs(innerHydras) {
 }
 
 function register(template) {
-  if (template.docFrag) return;
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -33,18 +31,17 @@ function register(template) {
     hydra,
     Def: getDefinition(id),
   }));
-  template.position = i++;
+  template.position = Object.keys(dollarDots).length;
   template.innerDefs = mapInnerDefs(template.innerHydras);
-  dollarDots[template.id] = template;
-  Object.freeze(template);
+  Object.freeze(dollarDots[template.id] = template);
+}
+
+for (let key in dollarDots) {
+  register(dollarDots[key]);
 }
 
 function getDefinition(id) {
-  const template = dollarDots[id];
-  if (template && !template.docFrag) {
-    register(template);
-  }
-  return template;
+  return dollarDots[id];
 }
 
 function getDefinitions() {
