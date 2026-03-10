@@ -1,6 +1,6 @@
 import { getDefinition, findRunnableTemplates, getInstance, getDefinitions, register } from "./src/core.js";
 import { FocusSelectionRestorer } from "./src/FocusRestorer.js";
-import { diffRaw as diff } from "./src/diff.js";
+import { diffRaw } from "./src/diff.js";
 
 function moveNodes(first, last, target) {
   for (let n = first, next; n != last; n = next)
@@ -105,7 +105,7 @@ class StampGroup {
     if (this.#values == newValues)
       return;
     const fillables = [], reusables = [], newStamps = [];
-    const diffs = diff(this.#values ?? [], newValues ?? []);
+    const diffs = diffRaw(this.#values ?? [], newValues ?? []);
     for (let { a, b } of diffs) {
       if (b.length == a.length) {
         newStamps.push(...this.#stamps.splice(0, a.length));
