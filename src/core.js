@@ -1,4 +1,5 @@
-const dollarDots = {};
+globalThis.DollarDots ??= Object.create(null);
+Object.defineProperty(globalThis, "DollarDots", { configurable: false, writable: false });
 
 function mapInnerDefs(innerHydras) {
   const res = new Map();
@@ -20,7 +21,10 @@ function mapInnerDefs(innerHydras) {
   return res;
 }
 
-function register(template) {
+function getDefinition(id) {
+  const template = globalThis.DollarDots[id];
+  if (!template || template.docFrag) return template;
+
   const el = document.createElement("template");
   el.innerHTML = template.templateString;
   template.docFrag = el.content;
@@ -31,17 +35,14 @@ function register(template) {
     hydra,
     Def: getDefinition(id),
   }));
-  template.position = Object.keys(dollarDots).length;
+  template.position = Object.keys(globalThis.DollarDots).length;
   template.innerDefs = mapInnerDefs(template.innerHydras);
-  Object.freeze(dollarDots[template.id] = template);
-}
-
-function getDefinition(id) {
-  return dollarDots[id];
+  Object.defineProperty(globalThis.DollarDots, id, { configurable: false, writable: false });
+  return Object.freeze(template);
 }
 
 function getDefinitions() {
-  return { ...dollarDots };
+  return { ...globalThis.DollarDots };
 }
 
 const resolvePath = (root, path) => path.reduce((n, i) =>
@@ -105,7 +106,6 @@ function* findRunnableTemplates(root) {
 }
 
 export {
-  register,
   getDefinition,
   getDefinitions,
   getInstance,

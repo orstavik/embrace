@@ -11,17 +11,9 @@
   </ol>
 </div>
 
-<script type="importmap">
-  {
-    "imports": {
-      "DollarDots": "/DollarDots.js?external=Diff",
-      "Diff": "https://cdn.jsdelivr.net/gh/orstavik/making-a@25.09.12/difference.js"
-    }
-  }
-</script>
 <script type="module" src="/auto.js"></script>
 <script type="module">
-  import { renderUnder } from "DollarDots";
+  import { renderUnder } from "/DollarDots.js";
 
   while (renderUnder(document.body, [{ a: "alpha" }, { a: "beta", b: "beta2" }]))
     await new Promise(requestAnimationFrame);

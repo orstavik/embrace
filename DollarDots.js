@@ -1,6 +1,6 @@
-import { getDefinition, findRunnableTemplates, getInstance, getDefinitions, register } from "./src/core.js";
+import { getDefinition, findRunnableTemplates, getInstance, getDefinitions } from "./src/core.js";
 import { FocusSelectionRestorer } from "./src/FocusRestorer.js";
-import { diffRaw as diff } from "Diff";
+import { diffRaw as diff } from "./src/Diff.js";
 
 function moveNodes(first, last, target) {
   for (let n = first, next; n != last; n = next)
@@ -266,4 +266,4 @@ function renderUnder(root, state) {
   restoreFocus && !root.contains(document.activeElement) && restoreFocus();
 }
 
-export { renderUnder, getDefinition, findRunnableTemplates, getInstance, getDefinitions, register };
+export { renderUnder, getDefinition, findRunnableTemplates, getInstance, getDefinitions };
