@@ -1,4 +1,5 @@
 globalThis.DollarDots ??= Object.create(null);
+Object.defineProperty(globalThis, "DollarDots", { configurable: false, writable: false });
 
 function mapInnerDefs(innerHydras) {
   const res = new Map();
@@ -36,9 +37,8 @@ function getDefinition(id) {
   }));
   template.position = Object.keys(globalThis.DollarDots).length;
   template.innerDefs = mapInnerDefs(template.innerHydras);
-  Object.freeze(template);
-
-  return template;
+  Object.defineProperty(globalThis.DollarDots, id, { configurable: false, writable: false });
+  return Object.freeze(template);
 }
 
 function getDefinitions() {
