@@ -12,6 +12,7 @@ function _compileTemplateString(expr) {
 
 function _compileTemplateHeader(expr) {
   try {
+    if (!expr.endsWith(")")) expr += ";";
     return Function("return ($, $$) => {" + expr + " $$();}")();
   } catch (e) {
     throw new SyntaxError(`JS syntax error:\n\n   ${expr} cb();\n`);
