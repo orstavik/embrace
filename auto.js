@@ -6,11 +6,10 @@ function compileToScript() {
   res.type = "module";
   const templates = compile(document.body)
     .reverse()
-    .map(templateToString)
-    .map(str => `register(${str});`)
+    .map(t => `globalThis.DollarDots["${t.id}"] = ${templateToString(t)};`)
     .join("\n");
   res.textContent =
-    `import { register } from "DollarDots";\n\n${templates}\n//# sourceURL=DDDefs${i++}.js`;
+    `globalThis.DollarDots ??= Object.create(null);\n\n${templates}\n//# sourceURL=DDDefs${i++}.js`;
   document.body.append(res);
 }
 
