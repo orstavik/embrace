@@ -1,4 +1,4 @@
-const dollarDots = {};
+const dollarDots = globalThis.DollarDots ??= Object.create(null);
 
 function mapInnerDefs(innerHydras) {
   const res = new Map();
@@ -34,6 +34,10 @@ function register(template) {
   template.position = Object.keys(dollarDots).length;
   template.innerDefs = mapInnerDefs(template.innerHydras);
   Object.freeze(dollarDots[template.id] = template);
+}
+
+for (let key in dollarDots) {
+  register(dollarDots[key]);
 }
 
 function getDefinition(id) {
